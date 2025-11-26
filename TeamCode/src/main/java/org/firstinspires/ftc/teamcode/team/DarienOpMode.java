@@ -46,7 +46,7 @@ public class DarienOpMode extends LinearOpMode {
     public DcMotor ejectionMotorRight;
     public DcMotor ejectionMotorLeft;
     public NormalizedColorSensor intakeColorSensor;
-    public CRServo rubberBands;
+    //public CRServo rubberBands;
 
     //    public IMU imu;
    // public GoBildaPinpointDriver odo;
@@ -87,6 +87,9 @@ public class DarienOpMode extends LinearOpMode {
     public static double FEEDER_POS_DOWN = .45;
     public static double SHOT_GUN_POWER_UP = 1;
 
+    public static double EJECTION_MOTOR_POWER_BACKWARDS = 0.2;
+
+    public static double EJECTION_MOTOR_POWER = 0.82;
     public double TIMEOUT_APRILTAG_DETECTION = 3; // seconds
     public static double INTAKE_RUBBER_BANDS_POWER = -0.7;
     public static double OUTPUT_RUBBER_BANDS_POWER = 0.2;
@@ -111,13 +114,14 @@ public class DarienOpMode extends LinearOpMode {
 
         // INITIALIZE SERVOS
         //claw = hardwareMap.get(Servo.class, "claw");
-        TrayServo = hardwareMap.get(Servo.class, "Tray");
+       /* TrayServo = hardwareMap.get(Servo.class, "Tray");
         Elevator = hardwareMap.get(Servo.class, "Elevator");
         IntakeServo = hardwareMap.get(Servo.class, "intakeServo");
         Feeder = hardwareMap.get(Servo.class, "Feeder");
         rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
         // INITIALIZE SENSORS
         intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
+        */
         // INITIALIZE MOTORS
         omniMotor0 = initializeMotor("omniMotor0");
         omniMotor1 = initializeMotor("omniMotor1");
@@ -131,7 +135,7 @@ public class DarienOpMode extends LinearOpMode {
         omniMotor2.setDirection(DcMotor.Direction.REVERSE);
         omniMotor3.setDirection(DcMotor.Direction.FORWARD);
 
-        initAprilTag();
+      //  initAprilTag();
 
         startTimeIntakeColorSensor = getRuntime();
 
@@ -163,7 +167,7 @@ public class DarienOpMode extends LinearOpMode {
          */
     }
 
-    public void shootArtifact() {
+    /*public void shootArtifact() {
      Elevator.setPosition(ELEVATOR_POS_UP);
      //shotGun(SHOT_GUN_POWER_DOWN);
      //start spinning down
@@ -179,6 +183,7 @@ public class DarienOpMode extends LinearOpMode {
      Feeder.setPosition(FEEDER_POS_DOWN);
      Elevator.setPosition(ELEVATOR_POS_DOWN);
     }
+     */
 
     public void setBreakpoint() {
         while (!gamepad1.x) {
@@ -206,15 +211,16 @@ public class DarienOpMode extends LinearOpMode {
     private static final double STAGE3_DELAY = .500;    // feeder up while spinning
 
     // Call this to begin shooting
-    public void startShooting() {
+   /* public void startShooting() {
         shootingStage = ShootingStage.ELEVATOR_UP;
         shootingStartTime = getRuntime();
 
         Elevator.setPosition(ELEVATOR_POS_UP);
     }
+    */
 
     // Call this inside loop() or inside your main auto while-loop
-    public void updateShooting(double shootingPower) {
+  /*  public void updateShooting(double shootingPower) {
         if (shootingStage == ShootingStage.IDLE ||
                 shootingStage == ShootingStage.FINISHED) {
             return;
@@ -249,6 +255,8 @@ public class DarienOpMode extends LinearOpMode {
         }
     }
 
+   */
+
     // Use this to check if it is done
     public boolean shootingDone() {
         return shootingStage == ShootingStage.FINISHED;
@@ -259,12 +267,13 @@ public class DarienOpMode extends LinearOpMode {
         shootingStage = ShootingStage.IDLE;
     }
 
-    /**
+   /* /**
      * Set the tray position and update the currentTrayPosition variable.
      *
      * @param position The desired position for the tray servo.
      */
-    public void setTrayPosition(double position) {
+
+    /*public void setTrayPosition(double position) {
         TrayServo.setPosition(position);
         currentTrayPosition = position;
     }
@@ -279,6 +288,8 @@ public class DarienOpMode extends LinearOpMode {
             }
         }
     }
+
+     */
 
     public void print(String Name, Object message) {
         //saves a line for quick debug messages
@@ -332,6 +343,7 @@ public class DarienOpMode extends LinearOpMode {
             //tp.put("lastTime",Last_Time);
             tp.put("ActPos",ActualPos);
 
+
             dash.sendTelemetryPacket(tp);
 
             if (currentPos >= endPos) {
@@ -347,7 +359,7 @@ public class DarienOpMode extends LinearOpMode {
     /**
      * Initialize the AprilTag processor.
      */
-    private void initAprilTag() {
+ /*   private void initAprilTag() {
 
         // Create the AprilTag processor the easy way.
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
@@ -357,6 +369,8 @@ public class DarienOpMode extends LinearOpMode {
                 hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
 
     }
+
+  */
 
     protected void telemetryAprilTag() {
 
@@ -398,7 +412,7 @@ public class DarienOpMode extends LinearOpMode {
     /**
      * Shoot the correct pattern by using the readApriltagSequence function
      */
-    public void shootApriltagSequence(ArrayList<AprilTagDetection> currentDetections) {
+    /*public void shootApriltagSequence(ArrayList<AprilTagDetection> currentDetections) {
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
                 switch (detection.id) {
@@ -476,6 +490,8 @@ public class DarienOpMode extends LinearOpMode {
         }
     }
 
+     */
+
 
     // CONTROL: INTAKE
     public void automaticIntake() {
@@ -488,7 +504,7 @@ public class DarienOpMode extends LinearOpMode {
             .addData("Blue", "%.3f", colors.blue);
 
      */
-        if (intakeColorSensor instanceof DistanceSensor) {
+     /*   if (intakeColorSensor instanceof DistanceSensor) {
             //telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) intakeColorSensor).getDistance(DistanceUnit.CM));
             if (((DistanceSensor)intakeColorSensor).getDistance(DistanceUnit.CM) <= INTAKE_DISTANCE && (getRuntime()-startTimeColor) >= 1){
                 startTimeColor = getRuntime();
@@ -496,6 +512,8 @@ public class DarienOpMode extends LinearOpMode {
             }
         }
         //telemetry.update();
+
+      */
     }
 
     public double getHypotenuse(double x, double y) {

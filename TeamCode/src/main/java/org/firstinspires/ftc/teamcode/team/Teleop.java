@@ -21,10 +21,12 @@ public class Teleop extends DarienOpModeTeleop {
     public double getIntakeServoPosition() {
         return IntakeServoPosition;
     }
-    public void setIntakeServoPosition(double position) {
+    /*public void setIntakeServoPosition(double position) {
         IntakeServo.setPosition(position);
         IntakeServoPosition = position;
     }
+
+     */
 
 
 
@@ -41,9 +43,9 @@ public class Teleop extends DarienOpModeTeleop {
         while (this.opModeIsActive()) {
             //pollSensors();
             runDriveSystem();
-            NormalizedRGBA colors = intakeColorSensor.getNormalizedColors();
+         //  NormalizedRGBA colors = intakeColorSensor.getNormalizedColors();
           //assigning the ejectionmotorleft/right controls
-            if (gamepad1.y) {
+         /*   if (gamepad1.y) {
                 rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
             } else if (gamepad1.a) {
                 rubberBands.setPower(OUTPUT_RUBBER_BANDS_POWER);
@@ -52,28 +54,38 @@ public class Teleop extends DarienOpModeTeleop {
                 rubberBands.setPower(0);
             }
 
-           if (gamepad2.back) {
+          */
+
+          /* if (gamepad2.back) {
              shootArtifact();
            }
-                if (gamepad2.right_trigger  > 0.05){
-                ejectionMotorLeft.setPower(1);
-                ejectionMotorRight.setPower(-1);
+
+
+           */
+            if (gamepad2.right_trigger  > 0.05){
+                ejectionMotorLeft.setPower(EJECTION_MOTOR_POWER);
+                ejectionMotorRight.setPower(-(EJECTION_MOTOR_POWER));
             } else {
                 ejectionMotorLeft.setPower(0);
                 ejectionMotorRight.setPower(0);
             }
-            //CONTROL: TRAYINIT
+         /*   //CONTROL: TRAYINIT
             if (gamepad2.start) {
                 servoIncremental(TrayServo, TRAY_POS_1_INTAKE, currentTrayPosition, 1, 1);
             }
+
+          */
+
+
             //CONTROL: EJECTIONMOTOR BACKWARDS
             if (gamepad2.left_trigger > 0.05) {
-                ejectionMotorRight.setPower(.5);
-                ejectionMotorLeft.setPower(-.5);
+                ejectionMotorRight.setPower(EJECTION_MOTOR_POWER_BACKWARDS);
+                ejectionMotorLeft.setPower(-(EJECTION_MOTOR_POWER_BACKWARDS));
+
             }
 
             //CONTROL: ELEVATOR
-            if (gamepad2.left_bumper){
+         /*  if (gamepad2.left_bumper){
                 Elevator.setPosition(ELEVATOR_POS_UP);
             } else {
                 Elevator.setPosition(ELEVATOR_POS_DOWN);
@@ -94,12 +106,12 @@ public class Teleop extends DarienOpModeTeleop {
             } else if (gamepad1.b && gain > 1) {
                 // A gain of less than 1 will make the values smaller, which is not helpful.
                 gain -= 0.005;
-            }
+           }
             telemetry.addData("Gain", gain);
-            telemetry.addLine()
-                    .addData("Red", "%.3f", colors.red)
-                    .addData("Green", "%.3f", colors.green)
-                    .addData("Blue", "%.3f", colors.blue);
+            //telemetry.addLine()
+                    //.addData("Red", "%.3f", colors.red)
+                    //.addData("Green", "%.3f", colors.green)
+                    //.addData("Blue", "%.3f", colors.blue);
             if (intakeColorSensor instanceof DistanceSensor) {
                 telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) intakeColorSensor).getDistance(DistanceUnit.CM));
                 if (((DistanceSensor)intakeColorSensor).getDistance(DistanceUnit.CM) <= INTAKE_DISTANCE && (getRuntime()-startTimeColor) >= 1){
@@ -107,13 +119,17 @@ public class Teleop extends DarienOpModeTeleop {
                     servoIncremental(IntakeServo, INTAKE_SERVO_POS_UP, INTAKE_SERVO_POS_DOWN, 1,1);
                 }
             }
+                    */
+
             telemetry.update();
 
-            if (gamepad2.a){
+          /*  if (gamepad2.a){
                 servoIncremental(IntakeServo, INTAKE_SERVO_POS_UP, INTAKE_SERVO_POS_DOWN, INTAKE_TIME,1);
             } else {
                 IntakeServo.setPosition(INTAKE_SERVO_POS_DOWN);
             }
+
+           */
             /*
             if (isIntakeServoMoving) {
                 // Continue moving the servo until the position is reached.
@@ -133,7 +149,7 @@ public class Teleop extends DarienOpModeTeleop {
             }
             */
             // CONTROL: ROTATING TRAY
-            if (gamepad2.dpad_left){
+           /* if (gamepad2.dpad_left){
                 //Tray.setPosition(TRAY_POS_1_INTAKE);
                 servoIncremental(TrayServo,TRAY_POS_1_INTAKE,currentTrayPosition, 1,4);
                 currentTrayPosition = TRAY_POS_1_INTAKE;
@@ -158,6 +174,8 @@ public class Teleop extends DarienOpModeTeleop {
                 servoIncremental(TrayServo,TRAY_POS_3_SCORE,currentTrayPosition, 1,4);
                 currentTrayPosition = TRAY_POS_3_SCORE;
             }
+
+            */
             //MACRO: APRILTAG 21
             /*
             tray.setpostion(TRAY_POS_1_SCORE)
