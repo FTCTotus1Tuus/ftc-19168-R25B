@@ -10,10 +10,12 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 
+@Disabled
 @Autonomous(name = "BlueAudienceSidePedro", group = "Pedro:Blues", preselectTeleOp = "TeleopFSM")
 @Configurable
 public class BlueAudience1 extends DarienOpModeFSM {
@@ -68,7 +70,6 @@ public class BlueAudience1 extends DarienOpModeFSM {
             // Drive the state machine
             pathState = autonomousPathUpdate();
 
-            runIntakeLifterWithColorSensor();
 
             /*
             // Update tray servo FSM if running
@@ -238,7 +239,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
 
-                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    //rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                     setTrayPosition(TRAY_POS_2_INTAKE);
                     follower.followPath(paths.IntakePosition, true);
                     setPathState(pathState + 1);
@@ -311,7 +312,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 shootPatternFSM.updateShootPattern(getRuntime());
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
-                    rubberBands.setPower(0); //stop intake
+                    //rubberBands.setPower(0); //stop intake
                     follower.followPath(paths.Parking, true);
                     setPathState(-1);
                 }

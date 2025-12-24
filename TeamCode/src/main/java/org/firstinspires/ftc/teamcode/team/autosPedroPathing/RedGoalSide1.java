@@ -10,6 +10,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 /**
  * Pedro Pathing auto using LinearOpMode via DarienOpModeFSM.
  */
+@Disabled
 @Autonomous(name = "RedGoalSidePedro", group = "Pedro:Reds", preselectTeleOp = "TeleopFSM")
 @Configurable
 public class RedGoalSide1 extends DarienOpModeFSM {
@@ -72,7 +74,6 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             // Drive the state machine
             pathState = autonomousPathUpdate();
 
-            runIntakeLifterWithColorSensor();
 
             // Panels/driver telemetry
             panelsTelemetry.addData("Tray Curr", currentTrayPosition);
@@ -254,7 +255,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
 
-                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    //rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
 
                     // now continue with next path
                     follower.followPath(paths.Path3, true);
@@ -305,7 +306,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                     follower.setMaxPower(0.5); // move slowly to prevent artifacts from falling out of tray
                     follower.followPath(paths.Path7, true);
                     setTrayPosition(TRAY_POS_1_SCORE);
-                    rubberBands.setPower(0);
+                    //rubberBands.setPower(0);
                     setPathState(pathState + 1);
                 }
                 break;
@@ -324,7 +325,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                 shootPatternFSM.updateShootPattern(getRuntime());
                 if (shootPatternFSM.isShootPatternDone()) {
                     telemetry.addLine("Case " + pathState + ": Done, setting state -1");
-                    rubberBands.setPower(0);
+                    //rubberBands.setPower(0);
                     setPathState(-1); // done
                 }
                 break;

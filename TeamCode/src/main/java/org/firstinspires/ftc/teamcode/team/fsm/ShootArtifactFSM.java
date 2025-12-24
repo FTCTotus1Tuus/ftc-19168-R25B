@@ -62,7 +62,7 @@ public class ShootArtifactFSM {
             case SHOTGUN_SPINUP:
                 // If the pattern has already spun up the shotgun, there's no need to wait for the delay here.
                 if (ejectionMotorsControlledByPattern || currentTime - shootingStartTime >= STAGE2_DELAY) {
-                    opMode.Feeder.setPosition(DarienOpModeFSM.FEEDER_POS_UP);
+                    //opMode.Feeder.setPosition(DarienOpModeFSM.FEEDER_POS_UP);
                     shootingStage = ShootingStage.FEEDER_UP;
                     shootingStartTime = currentTime; // Reset timer for next stage
                 }
@@ -73,7 +73,7 @@ public class ShootArtifactFSM {
                     if (!ejectionMotorsControlledByPattern) {
                         shotGunStop();
                     }
-                    opMode.Feeder.setPosition(DarienOpModeFSM.FEEDER_POS_DOWN);
+                    //opMode.Feeder.setPosition(DarienOpModeFSM.FEEDER_POS_DOWN);
                     opMode.Elevator.setPosition(DarienOpModeFSM.ELEVATOR_POS_DOWN);
                     shootingStage = ShootingStage.FINISHING;
                 }
@@ -97,13 +97,11 @@ public class ShootArtifactFSM {
     }
 
     public void shotGun(double power) {
-        opMode.ejectionMotorLeft.setPower(opMode.getVoltageAdjustedMotorPower(power));
-        opMode.ejectionMotorRight.setPower(-opMode.getVoltageAdjustedMotorPower(power));
+        opMode.ejectionMotor.setPower(opMode.getVoltageAdjustedMotorPower(power));
     }
 
     public void shotGunStop() {
-        opMode.ejectionMotorLeft.setPower(0);
-        opMode.ejectionMotorRight.setPower(0);
+        opMode.ejectionMotor.setPower(0);
     }
 
     public void setEjectionMotorsControlledByPattern(boolean controlled) {
