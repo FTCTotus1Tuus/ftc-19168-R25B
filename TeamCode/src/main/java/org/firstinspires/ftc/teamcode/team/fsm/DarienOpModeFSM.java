@@ -43,9 +43,11 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public FtcDashboard dash;
 
     // HARDWARE DEVICES
-    public Servo TrayServo, Elevator;
+    public Servo TrayServo, Elevator, turretServo;
     public CRServo rubberBands, intakeRoller;
     public DcMotor ejectionMotor;
+
+    public NormalizedColorSensor intakeColorSensor;
 
     // HARDWARE FIXED CONSTANTS
     public static final double encoderResolution = 537.7; //no change unless we change motors
@@ -72,8 +74,10 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double OUTPUT_RUBBER_BANDS_POWER = 0.2;
     public static double INTAKE_INTAKE_ROLLER_POWER = 1;
     public static double OUTPUT_INTAKE_ROLLER_POWER = 0.2;
+    public static double TURRET_ROTATION_INCREMENT = 0.001;
 
     public double currentTrayPosition;
+    public double currentTurretPosition;
 
     // Abstract method for child classes to implement
     @Override
@@ -99,8 +103,12 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         Elevator = hardwareMap.get(Servo.class, "Elevator");
         rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
         intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
+        turretServo = hardwareMap.get(Servo.class, "turretServo");
+        turretServo.setPosition(0.5);
+        currentTurretPosition = 0.5;
 
         // INITIALIZE SENSORS
+        intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
 
         // INITIALIZE MOTORS
         ejectionMotor = hardwareMap.get(DcMotor.class, "ejectionMotor");

@@ -131,6 +131,18 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     //currentTrayPosition = TRAY_POS_3_SCORE;
                 }
 
+                //turret rotation (pseudo- when leftstickx -)
+                if (gamepad2.left_stick_x <=-0.05) {    //todo: Add limit for cw rotation
+                    //turn turret clockwise
+                    turretServo.setPosition(currentTurretPosition + TURRET_ROTATION_INCREMENT);
+                    currentTurretPosition = currentTurretPosition + TURRET_ROTATION_INCREMENT;
+                }
+                else if (gamepad2.left_stick_x >= 0.05) {   //todo: Add limit so motor does not hit chasses while rotating ccw
+                    //turn turret counterclockwise
+                    turretServo.setPosition(currentTurretPosition - TURRET_ROTATION_INCREMENT);
+                    currentTurretPosition = currentTurretPosition - TURRET_ROTATION_INCREMENT;
+                }
+
                 /*
                 // CONTROL: ROTATING TRAY USING FSM
                 if (gamepad2.dpad_left && gamepad2.back) {
