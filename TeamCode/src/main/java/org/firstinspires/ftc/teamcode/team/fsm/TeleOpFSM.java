@@ -69,8 +69,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
                 rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
             } else if (gamepad1.a) {
-                intakeRoller.setPower(OUTPUT_INTAKE_ROLLER_POWER);
-                rubberBands.setPower(OUTPUT_RUBBER_BANDS_POWER);
+                intakeRoller.setPower(-OUTPUT_INTAKE_ROLLER_POWER);
+                rubberBands.setPower(-OUTPUT_RUBBER_BANDS_POWER);
             } else if (gamepad1.x) {
                 intakeRoller.setPower(0);
                 rubberBands.setPower(0);
@@ -131,16 +131,18 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     //currentTrayPosition = TRAY_POS_3_SCORE;
                 }
 
-                //turret rotation (pseudo- when leftstickx -)
-                if (gamepad2.left_stick_x <=-0.05) {    //todo: Add limit for cw rotation
-                    //turn turret clockwise
-                    turretServo.setPosition(currentTurretPosition + TURRET_ROTATION_INCREMENT);
-                    currentTurretPosition = currentTurretPosition + TURRET_ROTATION_INCREMENT;
+                //turret rotation
+                if (gamepad2.left_stick_x <=-0.05) {    //turn turret clockwise
+                    //updating the current turret position to be in range of the min and max
+                    currentTurretPosition = clamp(currentTurretPosition + TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MIN,TURRET_ROTATION_MAX);
+                    //sets turret position
+                    turretServo.setPosition(currentTurretPosition);
                 }
-                else if (gamepad2.left_stick_x >= 0.05) {   //todo: Add limit so motor does not hit chasses while rotating ccw
-                    //turn turret counterclockwise
-                    turretServo.setPosition(currentTurretPosition - TURRET_ROTATION_INCREMENT);
-                    currentTurretPosition = currentTurretPosition - TURRET_ROTATION_INCREMENT;
+                else if (gamepad2.left_stick_x >= 0.05) {   //turn turret counterclockwise
+                    //updating the current turret position to be in range of the min and max
+                    currentTurretPosition = clamp(currentTurretPosition - TURRET_ROTATION_INCREMENT,TURRET_ROTATION_MIN,TURRET_ROTATION_MAX);
+                    //sets turret position
+                    turretServo.setPosition(currentTurretPosition);
                 }
 
                 /*

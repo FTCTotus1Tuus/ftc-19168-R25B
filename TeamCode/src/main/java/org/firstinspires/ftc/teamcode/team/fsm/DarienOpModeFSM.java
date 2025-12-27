@@ -32,6 +32,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public AprilTagDetectionFSM tagFSM;
     public ShootPatternFSM shootPatternFSM;
     public ShootArtifactFSM shootArtifactFSM;
+    public TrayFSM trayFSM;
 
     // AprilTag
     public ArrayList<AprilTagDetection> aprilTagDetections;
@@ -71,10 +72,12 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
     public static final double TIMEOUT_APRILTAG_DETECTION = 3;
     public static double INTAKE_RUBBER_BANDS_POWER = 1;
-    public static double OUTPUT_RUBBER_BANDS_POWER = 0.2;
+    public static double OUTPUT_RUBBER_BANDS_POWER = 0.3;
     public static double INTAKE_INTAKE_ROLLER_POWER = 1;
     public static double OUTPUT_INTAKE_ROLLER_POWER = 0.2;
     public static double TURRET_ROTATION_INCREMENT = 0.001;
+    public static double TURRET_ROTATION_MIN = 0.38;
+    public static double TURRET_ROTATION_MAX = 0.75;
 
     public double currentTrayPosition;
     public double currentTurretPosition;
@@ -120,6 +123,9 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
+        trayFSM = new TrayFSM(TrayServo, rubberBands, intakeRoller, intakeColorSensor, telemetry);
+        // Use global tuning constants for intake power so behavior matches teleop settings
+        trayFSM.setIntakePowers(INTAKE_RUBBER_BANDS_POWER, INTAKE_INTAKE_ROLLER_POWER);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position
@@ -215,4 +221,39 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         double scale = nominalVoltage / currentVoltage;
         return power * scale;
     }
+
+    public static double clamp(double val, double min, double max) {
+        return Math.max(min, Math.min(max, val));
+    }
+    //goal: automate intake as much as possible, save tray positions, checking if there are balls in either of 3 slots, not just yes not but color aswell, automate intake, sensor checks if ball is in, then rotate, intake etc...
+   /* public void intakeColorSensorTelemetry() {
+        if (intakeColorSensor == null) {
+            telemetry.addLine("Intake Color Sensor: not configured");
+            return;
+        }
+
+        // Read once and reuse to keep values consistent
+        com.qualcomm.robotcore.hardware.NormalizedRGBA colors = intakeColorSensor.getNormalizedColors();
+
+        // Convert normalized 0.0-1.0 channels to 0-255 ints (clamped and rounded)
+        int r255 = (int) (clamp(colors.red, 0.0, 1.0) * 255.0 + 0.5);
+        int g255 = (int) (clamp(colors.green, 0.0, 1.0) * 255.0 + 0.5);
+        int b255 = (int) (clamp(colors.blue, 0.0, 1.0) * 255.0 + 0.5);
+        int a255 = (int) (clamp(colors.alpha, 0.0, 1.0) * 255.0 + 0.5);
+
+        // Compute HSV from 0-255 RGB
+        float[] hsvValues = new float[3];
+        android.graphics.Color.RGBToHSV(r255, g255, b255, hsvValues);
+
+        // Telemetry: normalized and 0-255 values plus hue
+        telemetry.addData("Intake Color - Alpha (0-1)", colors.alpha);
+        telemetry.addData("Intake Color - Alpha (0-255)", a255);
+        telemetry.addData("Intake Color - Red (0-1)  ", colors.red);
+        telemetry.addData("Intake Color - Red (0-255)", r255);
+        telemetry.addData("Intake Color - Green (0-1)", colors.green);
+        telemetry.addData("Intake Color - Green (0-255)", g255);
+        telemetry.addData("Intake Color - Blue (0-1) ", colors.blue);
+        telemetry.addData("Intake Color - Blue (0-255) ", b255);
+        telemetry.addData("Intake Color - Hue (deg)   ", hsvValues[0]);
+    }*/
 }
