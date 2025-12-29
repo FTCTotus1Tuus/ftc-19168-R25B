@@ -76,8 +76,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double INTAKE_INTAKE_ROLLER_POWER = 1;
     public static double OUTPUT_INTAKE_ROLLER_POWER = 0.2;
     public static double TURRET_ROTATION_INCREMENT = 0.001;
-    public static double TURRET_ROTATION_MIN = 0.38;
-    public static double TURRET_ROTATION_MAX = 0.75;
+    public static double TURRET_ROTATION_MIN = 0.63;
+    public static double TURRET_ROTATION_MAX = 0.3;
 
     public double currentTrayPosition;
     public double currentTurretPosition;

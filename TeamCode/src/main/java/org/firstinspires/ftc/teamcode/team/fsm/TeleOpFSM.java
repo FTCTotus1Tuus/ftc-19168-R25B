@@ -26,9 +26,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // TUNING CONSTANTS
     public static double INTAKE_TIME = 1;
     public static double SHOT_TIMEOUT = 2.0; // seconds
-    public static double TURRET_ROTATION_MIN = 0.63;//todo: VALUES GOOD - CHANGE NAMES BECAUSE INVERTED
-    public static double TURRET_ROTATION_MAX = 0.3;
-    public static double TURRET_ROTATION_INCREMENT = 0.001;
 
     // VARIABLES
     private double shotStartTime;
