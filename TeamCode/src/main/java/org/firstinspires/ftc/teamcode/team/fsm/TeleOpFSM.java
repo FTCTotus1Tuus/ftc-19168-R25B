@@ -31,6 +31,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
     private double shotStartTime;
     private boolean shotStarted = false;
 
+    // Track previous bumper state for edge detection
+    private boolean prevRightBumper = false;
+
     @Override
     public void initControls() {
         super.initControls();
@@ -74,6 +77,21 @@ public class TeleOpFSM extends DarienOpModeFSM {
             } else if (gamepad1.x) {
                 intakeRoller.setPower(0);
                 rubberBands.setPower(0);
+            }
+
+            // Toggle auto-intake on right bumper press (edge triggered)
+            if (gamepad1.right_bumper && !prevRightBumper) {
+                // toggle the TrayFSM instance (from DarienOpModeFSM)
+                if (trayFSM != null) trayFSM.toggleAutoIntake();
+            }
+            prevRightBumper = gamepad1.right_bumper;
+
+            // Show current auto-intake status on telemetry
+            telemetry.addData("AutoIntakeRunning", trayFSM != null && trayFSM.isAutoIntakeRunning());
+
+            // Update trayFSM state machine each loop so it can run when toggled on
+            if (trayFSM != null) {
+                trayFSM.update();
             }
 
 

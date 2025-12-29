@@ -124,8 +124,6 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
         trayFSM = new TrayFSM(TrayServo, rubberBands, intakeRoller, intakeColorSensor, telemetry);
-        // Use global tuning constants for intake power so behavior matches teleop settings
-        trayFSM.setIntakePowers(INTAKE_RUBBER_BANDS_POWER, INTAKE_INTAKE_ROLLER_POWER);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position

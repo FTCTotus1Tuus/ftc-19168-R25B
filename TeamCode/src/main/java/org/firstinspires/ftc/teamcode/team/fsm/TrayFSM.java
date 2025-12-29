@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode.team.fsm;
 
+import android.graphics.Color;
+
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import java.util.Arrays;
 
 /**
  * State machine to automate the tray intake.
@@ -13,6 +17,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
  * - Call startAutoIntake() to begin the state machine. Periodically call update() from loop().
  * - Telemetry will show raw RGB (0-255) and detected slot states.
  */
+@Config
 public class TrayFSM {
     public enum SlotState { EMPTY, PURPLE, GREEN, UNKNOWN }
     private enum State { IDLE, POSITION_TO_SLOT, INTAKE_WAIT, CHECK_SLOT, DONE }
@@ -24,68 +29,124 @@ public class TrayFSM {
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
 
-    // Slot servo target positions (configurable). Default values are placeholders and should be tuned.
-    private final double[] slotPositions = new double[]{0.0, 0.5, 1.0};
+    // Tray positions (six known positions: three intake positions and three scoring positions)
+    // Values provided by user (DarienOpModeFSM.java)
+    public static final double TRAY_POS_1_INTAKE = 0.275;
+    public static final double TRAY_POS_2_INTAKE = 0.205;
+    public static final double TRAY_POS_3_INTAKE = 0.350;
+    public static final double TRAY_POS_1_SCORE  = 0.385;
+    public static final double TRAY_POS_2_SCORE  = 0.310;
+    public static final double TRAY_POS_3_SCORE  = 0.240;
+
+    // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 1..3)
+    private final double[] slotPositions = new double[]{TRAY_POS_1_INTAKE, TRAY_POS_2_INTAKE, TRAY_POS_3_INTAKE};
+
+    // Intake motor powers
     private double intakeRubberPower = 1.0;
     private double intakeRollerPower = 1.0;
 
+    // Internal state
     private final SlotState[] slots = new SlotState[3];
     private State state = State.IDLE;
     private int currentSlotIndex = 0; // 0..2
 
     // Timing/timeouts (in seconds)
-    private double intakeTimeout = 2.0; // how long to run intake while waiting for ball
-    private double settleTime = 0.3;    // how long to wait after moving servo before checking
+    public static double INTAKE_TIMEOUT = 2.0; // how long to run intake while waiting for ball (used only if waitForArtifact==false)
+    public static double SETTLE_TIME = 0.3;    // how long to wait after moving servo before checking
+    // How long to ignore sensor input after commanding the servo to move (seconds).
+    // Set this slightly longer than the servo travel time to avoid seeing balls that pass under the sensor during rotation.
+    public static double SERVO_IGNORE_DURATION = 0.5;
 
-    // Color thresholds (0-255)
-    private int presenceThreshold = 30; // brightness threshold to decide something is present
-    private int purpleThreshold = 40; // combined red+blue threshold to consider purple
-    private int greenThreshold = 40;  // green threshold to consider green
+    // Whether to wait indefinitely for an artifact (true) or use timeout to skip (false)
+    public static boolean WAIT_FOR_ARTIFACT = true;
 
+    // Color detection thresholds (RGB and HSV)
+    public static int PRESENCE_THRESHOLD = 1; // brightness threshold to decide something is present (0..255). Lowered to handle low readings like 1/2/3
+    public static int PURPLE_THRESHOLD = 40;   // RGB fallback threshold for purple
+    public static int GREEN_THRESHOLD = 40;    // RGB fallback threshold for green
+
+    // HSV parameters (hue in degrees 0..360, sat/val 0..1)
+    public static float GREEN_HUE_MIN = 65f;
+    public static float GREEN_HUE_MAX = 170f;
+    public static float PURPLE_HUE_MIN = 250f;
+    public static float PURPLE_HUE_MAX = 330f;
+    public static float SAT_THRESHOLD = 0.25f;
+    public static float VAL_THRESHOLD = 0.02f; // lower default to handle low-light readings
+
+    // Low-light relative detection (dashboard-tunable)
+    // When readings are extremely small (e.g. RGB 1/2/3), absolute HSV/RGB thresholds may fail.
+    // Enabling this causes the classifier to use the normalized component ratios to infer color.
+    public static boolean ALLOW_LOW_LIGHT_DETECTION = true;
+    // The dominant normalized component (or sum of red+blue for purple) must exceed others by this factor
+    public static float LOW_LIGHT_RELATIVE_FACTOR = 1.1f;
+    // Minimum total normalized intensity (red+green+blue) to consider the relative heuristic
+    public static float LOW_LIGHT_MIN_TOTAL = 0.005f;
+
+    // Sliding-window detection
+    private final int windowSize = 5; // number of recent samples to consider
+    private final SlotState[] detectionWindow = new SlotState[windowSize];
+    private int windowIndex = 0;
+    public static int REQUIRED_DETECTIONS = 2; // how many occurrences in window to accept
+
+    // Brightness gating (optional). If >0, require brightness increase over baseline to count samples
+    private int baselineBrightness = 0;
+    public static int BRIGHTNESS_DELTA_THRESHOLD = 0; // disabled by default
+
+    // Tracking
     private double stateStartTime = 0.0;
+    // Timestamp (seconds) until which sensor input should be ignored because the servo is still moving
+    private double servoIgnoreUntil = 0.0;
 
+    // Constructor: initialize final hardware fields and detection window
     public TrayFSM(Servo trayServo, CRServo rubberBands, CRServo intakeRoller, NormalizedColorSensor colorSensor, Telemetry telemetry) {
         this.trayServo = trayServo;
         this.rubberBands = rubberBands;
         this.intakeRoller = intakeRoller;
         this.colorSensor = colorSensor;
         this.telemetry = telemetry;
-        for (int i = 0; i < 3; i++) slots[i] = SlotState.EMPTY;
+
+        // initialize slot states and detection window
+        Arrays.fill(slots, SlotState.EMPTY);
+        Arrays.fill(detectionWindow, SlotState.EMPTY);
     }
 
-    // Optional configuration methods
-    public void setSlotServoPositions(double pos0, double pos1, double pos2) {
-        slotPositions[0] = pos0;
-        slotPositions[1] = pos1;
-        slotPositions[2] = pos2;
-    }
+    // Dashboard-editable intake powers
+    public static double INTAKE_RUBBER_POWER = 1.0;
+    public static double INTAKE_ROLLER_POWER = 1.0;
 
-    public void setIntakeTimeout(double seconds) { this.intakeTimeout = seconds; }
-    public void setSettleTime(double seconds) { this.settleTime = seconds; }
-    public void setPresenceThreshold(int v) { this.presenceThreshold = v; }
-    public void setPurpleThreshold(int v) { this.purpleThreshold = v; }
-    public void setGreenThreshold(int v) { this.greenThreshold = v; }
-    public void setIntakePowers(double rubberPower, double rollerPower) { this.intakeRubberPower = rubberPower; this.intakeRollerPower = rollerPower; }
-
-    // Start the automatic intake process. This will clear previous slot data and begin at slot 0.
+    // Start the automatic intake process. This will clear previous slot data and begin at first empty intake slot.
     public void startAutoIntake() {
-        for (int i = 0; i < 3; i++) slots[i] = SlotState.EMPTY;
-        currentSlotIndex = findNextEmptySlot(0);
-        if (currentSlotIndex < 0) {
-            state = State.DONE;
-            return;
-        }
-        state = State.POSITION_TO_SLOT;
-        stateStartTime = timer.seconds();
-        moveToSlot(currentSlotIndex);
-    }
+        Arrays.fill(slots, SlotState.EMPTY);
+        // reset detection window so previous readings don't affect new intake
+        Arrays.fill(detectionWindow, SlotState.EMPTY);
+         windowIndex = 0;
+         currentSlotIndex = findNextEmptySlot(0);
+         if (currentSlotIndex < 0) {
+             state = State.DONE;
+             return;
+         }
+         state = State.POSITION_TO_SLOT;
+         stateStartTime = timer.seconds();
+         moveToSlot(currentSlotIndex);
+     }
 
     // Call this periodically (e.g., opmode loop)
     public void update() {
+        // If the color sensor isn't configured, avoid NPE and report via telemetry
+        if (colorSensor == null) {
+            telemetry.addLine("TrayFSM: intakeColorSensor not configured");
+            // Output slot summary
+            for (int i = 0; i < 3; i++) {
+                telemetry.addData("Slot " + (i + 1), slots[i].toString());
+            }
+            telemetry.update();
+            return;
+        }
+
         // Read RGB scaled to 0-255
         int[] rgb = readRGB255();
-        // Add telemetry for raw rgb
-        telemetry.addData("RGB", String.format("%d / %d / %d", rgb[0], rgb[1], rgb[2]));
+        // Add telemetry for raw rgb (0-255)
+        telemetry.addData("RGB", "%d / %d / %d", rgb[0], rgb[1], rgb[2]);
 
         switch (state) {
             case IDLE:
@@ -94,25 +155,70 @@ public class TrayFSM {
 
             case POSITION_TO_SLOT:
                 // Wait a short settle time after moving servo
-                if (timer.seconds() - stateStartTime >= settleTime) {
-                    // Start intake to try to capture a ball
-                    rubberBands.setPower(intakeRubberPower);
-                    intakeRoller.setPower(intakeRollerPower);
-                    state = State.INTAKE_WAIT;
-                    stateStartTime = timer.seconds();
-                    telemetry.addData("State", String.format("INTAKE_WAIT slot=%d", currentSlotIndex + 1));
-                }
-                break;
+                // only proceed to INTAKE_WAIT after both settle time and servo movement are finished
+                if (timer.seconds() - stateStartTime >= SETTLE_TIME && timer.seconds() >= servoIgnoreUntil) {
+                    // Start intake to try to capture a ball: run both rubber bands and the roller
+                    rubberBands.setPower(INTAKE_RUBBER_POWER);
+                    intakeRoller.setPower(INTAKE_ROLLER_POWER);
+                    // reset detection window for this intake slot
+                    Arrays.fill(detectionWindow, SlotState.EMPTY);
+                     windowIndex = 0;
+                     // capture baseline brightness so we only accept arrivals that increase brightness
+                     int[] baselineRgb = readRGB255();
+                     baselineBrightness = (baselineRgb[0] + baselineRgb[1] + baselineRgb[2]) / 3;
+                     // reset detection window for this intake slot
+                     state = State.INTAKE_WAIT;
+                     stateStartTime = timer.seconds();
+                     telemetry.addData("State", "INTAKE_WAIT slot=%d", currentSlotIndex + 1);
+                 }
+                 break;
 
             case INTAKE_WAIT:
                 // while intake running, monitor sensor to see if a ball has arrived
                 SlotState detected = classifyCurrentColor();
-                if (detected != SlotState.EMPTY) {
-                    // Ball detected — stop intake, record, move to next slot
+                int[] currRgb = readRGB255();
+                int currBrightness = (currRgb[0] + currRgb[1] + currRgb[2]) / 3;
+                telemetry.addData("DetectedRaw", detected.toString());
+                telemetry.addData("Brightness", "%d (baseline %d, delta %d)", currBrightness, baselineBrightness, BRIGHTNESS_DELTA_THRESHOLD);
+
+                // Put this detection into the sliding window (apply brightness gating if configured)
+                boolean countThisSample = true;
+                if (BRIGHTNESS_DELTA_THRESHOLD > 0) {
+                    countThisSample = (currBrightness - baselineBrightness) >= BRIGHTNESS_DELTA_THRESHOLD;
+                }
+                if (!countThisSample) {
+                    detected = SlotState.EMPTY; // treat as empty for counting purposes
+                }
+
+                // push into window
+                // If the servo is still moving / ignoring period hasn't passed, don't count this sample
+                if (timer.seconds() >= servoIgnoreUntil) {
+                    detectionWindow[windowIndex] = detected;
+                    windowIndex = (windowIndex + 1) % windowSize;
+                } else {
+                    // treat as empty sample while servo is settling
+                    detectionWindow[windowIndex] = SlotState.EMPTY;
+                    windowIndex = (windowIndex + 1) % windowSize;
+                }
+
+                // count occurrences in window
+                int countPurple = 0;
+                int countGreen = 0;
+                for (int i = 0; i < windowSize; i++) {
+                    if (detectionWindow[i] == SlotState.PURPLE) countPurple++;
+                    if (detectionWindow[i] == SlotState.GREEN) countGreen++;
+                }
+
+                telemetry.addData("WindowCounts", "P=%d G=%d", countPurple, countGreen);
+
+                // Determine if either color meets the required detections
+                if (countPurple >= REQUIRED_DETECTIONS || countGreen >= REQUIRED_DETECTIONS) {
+                    SlotState accepted = (countPurple >= countGreen) ? SlotState.PURPLE : SlotState.GREEN;
+                    // Ball detected reliably — stop intake, record, move to next slot
                     rubberBands.setPower(0.0);
                     intakeRoller.setPower(0.0);
-                    slots[currentSlotIndex] = detected;
-                    telemetry.addData(String.format("Slot %d", currentSlotIndex + 1), slots[currentSlotIndex].toString());
+                    slots[currentSlotIndex] = accepted;
+                    telemetry.addData("Slot " + (currentSlotIndex + 1), slots[currentSlotIndex].toString());
                     // Move to next empty slot
                     int next = findNextEmptySlot(currentSlotIndex + 1);
                     if (next < 0) {
@@ -123,7 +229,8 @@ public class TrayFSM {
                         state = State.POSITION_TO_SLOT;
                         stateStartTime = timer.seconds();
                     }
-                } else if (timer.seconds() - stateStartTime >= intakeTimeout) {
+                } else if (!WAIT_FOR_ARTIFACT && timer.seconds() - stateStartTime >= INTAKE_TIMEOUT) {
+                    // Timeout behavior only used when waitForArtifact is false.
                     // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
                     rubberBands.setPower(0.0);
                     intakeRoller.setPower(0.0);
@@ -138,7 +245,7 @@ public class TrayFSM {
                         stateStartTime = timer.seconds();
                     }
                 } else {
-                    telemetry.addData("IntakeWaiting", String.format("slot=%d time=%.2f", currentSlotIndex + 1, timer.seconds() - stateStartTime));
+                    telemetry.addData("IntakeWaiting", "slot=%d time=%.2f", currentSlotIndex + 1, timer.seconds() - stateStartTime);
                 }
                 break;
 
@@ -157,15 +264,34 @@ public class TrayFSM {
 
         // Output slot summary
         for (int i = 0; i < 3; i++) {
-            telemetry.addData(String.format("Slot %d", i + 1), slots[i].toString());
+            telemetry.addData("Slot " + (i + 1), slots[i].toString());
         }
 
-        telemetry.update();
-    }
+        // Telemetry: show if we're currently ignoring sensor input due to servo movement
+        double ignoreRemaining = Math.max(0.0, servoIgnoreUntil - timer.seconds());
+        telemetry.addData("ServoIgnoreRemaining", "%.2fs", ignoreRemaining);
+        telemetry.addData("IgnoringSensorInput", "%s", ignoreRemaining > 0.0 ? "YES" : "NO");
 
-    // Move servo to the given slot index (0..2)
+         telemetry.update();
+     }
+
+    // Move servo to the given intake slot index (0..2)
     private void moveToSlot(int slotIndex) {
         double pos = slotPositions[Math.max(0, Math.min(2, slotIndex))];
+        trayServo.setPosition(pos);
+        // ignore sensor input for a short time while the servo moves
+        servoIgnoreUntil = timer.seconds() + SERVO_IGNORE_DURATION;
+     }
+
+    // Move servo to a scoring position index (0..2) corresponding to scoring positions 1..3
+    public void moveToScoreSlot(int scoreSlotIndex) {
+        int i = Math.max(0, Math.min(2, scoreSlotIndex));
+        double pos;
+        switch (i) {
+            case 0: pos = TRAY_POS_1_SCORE; break;
+            case 1: pos = TRAY_POS_2_SCORE; break;
+            default: pos = TRAY_POS_3_SCORE; break;
+        }
         trayServo.setPosition(pos);
     }
 
@@ -195,23 +321,81 @@ public class TrayFSM {
 
     // Classify current color reading into EMPTY / PURPLE / GREEN / UNKNOWN
     private SlotState classifyCurrentColor() {
-        int[] rgb = readRGB255();
-        int r = rgb[0], g = rgb[1], b = rgb[2];
+        // Read normalized colors (0..1) and convert to 0..255 for logging and HSV conversion
+        com.qualcomm.robotcore.hardware.NormalizedRGBA colors = colorSensor.getNormalizedColors();
+        float nr = colors.red;
+        float ng = colors.green;
+        float nb = colors.blue;
+        int r = normTo255(nr);
+        int g = normTo255(ng);
+        int b = normTo255(nb);
         int brightness = (r + g + b) / 3;
-        // If very dark, treat as empty
-        if (brightness < presenceThreshold) return SlotState.EMPTY;
-        // Detect green: green component dominant and above threshold
-        if (g >= r && g >= b && g >= greenThreshold) return SlotState.GREEN;
-        // Detect purple: red and blue are both strong compared to green
-        int redBlueAvg = (r + b) / 2;
-        if (redBlueAvg >= purpleThreshold && redBlueAvg > g) return SlotState.PURPLE;
-        // Fallback unknown
-        return SlotState.UNKNOWN;
+
+        // Telemetry: always show normalized floats and converted RGB so you can tune thresholds live
+        telemetry.addData("Norm R/G/B", "%.4f / %.4f / %.4f", nr, ng, nb);
+        telemetry.addData("RGB 0-255", "%d / %d / %d", r, g, b);
+        telemetry.addData("BrightnessRaw", "%d", brightness);
+
+        // Convert RGB (0-255) to HSV and always emit HSV telemetry even at low brightness
+        float[] hsv = new float[3];
+        Color.RGBToHSV(r, g, b, hsv); // hsv[0]=hue(0..360), hsv[1]=sat(0..1), hsv[2]=val(0..1)
+        float hue = hsv[0];
+        float sat = hsv[1];
+        float val = hsv[2];
+        telemetry.addData("Hue", "%.1f", hue);
+        telemetry.addData("Sat/Val", "%.3f/%.3f", sat, val);
+
+        // If very dark, optionally try a relative, normalized-component heuristic
+        boolean lowBrightness = brightness < PRESENCE_THRESHOLD;
+        boolean lowValue = val < VAL_THRESHOLD;
+
+        if (lowBrightness) {
+            // If brightness is below the presence threshold, we won't accept HSV absolute criteria.
+            // Instead allow the low-light relative heuristic (if enabled) to classify by ratios.
+            if (ALLOW_LOW_LIGHT_DETECTION) {
+                float total = nr + ng + nb; // normalized total (0..3)
+                if (total >= LOW_LIGHT_MIN_TOTAL) {
+                    if (ng > (nr + nb) * LOW_LIGHT_RELATIVE_FACTOR) return SlotState.GREEN;
+                    if ((nr + nb) > ng * LOW_LIGHT_RELATIVE_FACTOR && (nr + nb) > 0f) return SlotState.PURPLE;
+                }
+            }
+            return SlotState.EMPTY;
+        } else if (ALLOW_LOW_LIGHT_DETECTION && lowValue) {
+            // If HSV value is too low for reliable hue, still try the relative heuristic
+            float total = nr + ng + nb;
+            if (total >= LOW_LIGHT_MIN_TOTAL) {
+                if (ng > (nr + nb) * LOW_LIGHT_RELATIVE_FACTOR) return SlotState.GREEN;
+                if ((nr + nb) > ng * LOW_LIGHT_RELATIVE_FACTOR && (nr + nb) > 0f) return SlotState.PURPLE;
+            }
+        }
+
+         // Use HSV ranges first (more robust to lighting)
+        if (val >= VAL_THRESHOLD && sat >= SAT_THRESHOLD) {
+            if (isHueInRange(hue, GREEN_HUE_MIN, GREEN_HUE_MAX)) return SlotState.GREEN;
+            if (isHueInRange(hue, PURPLE_HUE_MIN, PURPLE_HUE_MAX)) return SlotState.PURPLE;
+        }
+
+         // Fallback to RGB heuristics
+         if (g >= r && g >= b && g >= GREEN_THRESHOLD) return SlotState.GREEN;
+         int redBlueAvg = (r + b) / 2;
+         if (redBlueAvg >= PURPLE_THRESHOLD && redBlueAvg > g) return SlotState.PURPLE;
+         return SlotState.UNKNOWN;
+     }
+
+    private boolean isHueInRange(float hue, float min, float max) {
+        if (min <= max) return hue >= min && hue <= max;
+        // wrap-around case (e.g., min=300, max=40)
+        return hue >= min || hue <= max;
     }
 
     // Public getters
     public SlotState[] getSlots() {
         return slots.clone();
+    }
+
+    public SlotState getSlot(int index) {
+        if (index < 0 || index >= slots.length) return SlotState.UNKNOWN;
+        return slots[index];
     }
 
     public boolean isDone() { return state == State.DONE; }
@@ -220,6 +404,33 @@ public class TrayFSM {
         rubberBands.setPower(0);
         intakeRoller.setPower(0);
         state = State.IDLE;
+    }
+
+    /**
+     * Returns true if the auto-intake state machine is currently running (positioning or intaking).
+     */
+    public boolean isAutoIntakeRunning() {
+        return state == State.POSITION_TO_SLOT || state == State.INTAKE_WAIT;
+    }
+
+    /**
+     * Stop the auto-intake state machine and ensure intake motors are off.
+     */
+    public void stopAutoIntake() {
+        rubberBands.setPower(0.0);
+        intakeRoller.setPower(0.0);
+        state = State.DONE;
+    }
+
+    /**
+     * Toggle the auto-intake state machine: start if stopped, stop if running.
+     */
+    public void toggleAutoIntake() {
+        if (isAutoIntakeRunning()) {
+            stopAutoIntake();
+        } else {
+            startAutoIntake();
+        }
     }
 
 }
