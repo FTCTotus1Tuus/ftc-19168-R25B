@@ -26,6 +26,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // TUNING CONSTANTS
     public static double INTAKE_TIME = 1;
     public static double SHOT_TIMEOUT = 2.0; // seconds
+    public static double TURRET_ROTATION_MIN = 0.63;//todo: VALUES GOOD - CHANGE NAMES BECAUSE INVERTED
+    public static double TURRET_ROTATION_MAX = 0.3;
+    public static double TURRET_ROTATION_INCREMENT = 0.001;
 
     // VARIABLES
     private double shotStartTime;
@@ -33,6 +36,15 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
     // Track previous bumper state for edge detection
     private boolean prevRightBumper = false;
+
+    //private clamp test
+    private static double clampT(double v, double min, double max) {
+        if (Double.isNaN(v)) return min;               // defensive: treat NaN as min
+        if (min > max) {                               // tolerate inverted bounds
+            double t = min; min = max; max = t;
+        }
+        return Math.max(min, Math.min(max, v));
+    }
 
     @Override
     public void initControls() {
@@ -152,16 +164,18 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 //turret rotation
                 if (gamepad2.left_stick_x <=-0.05) {    //turn turret clockwise
                     //updating the current turret position to be in range of the min and max
-                    currentTurretPosition = clamp(currentTurretPosition + TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MIN,TURRET_ROTATION_MAX);
+                    currentTurretPosition = clampT(currentTurretPosition + TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MIN,TURRET_ROTATION_MAX);
                     //sets turret position
                     turretServo.setPosition(currentTurretPosition);
                 }
                 else if (gamepad2.left_stick_x >= 0.05) {   //turn turret counterclockwise
                     //updating the current turret position to be in range of the min and max
-                    currentTurretPosition = clamp(currentTurretPosition - TURRET_ROTATION_INCREMENT,TURRET_ROTATION_MIN,TURRET_ROTATION_MAX);
+                    currentTurretPosition = clampT(currentTurretPosition - TURRET_ROTATION_INCREMENT,TURRET_ROTATION_MIN,TURRET_ROTATION_MAX);
                     //sets turret position
                     turretServo.setPosition(currentTurretPosition);
                 }
+            /*    telemetry.addData("TurretPos", "%.3f", currentTurretPosition);
+                telemetry.addData("Turret Min/Max/Inc", "%.3f / %.3f / %.3f", TURRET_ROTATION_MIN, TURRET_ROTATION_MAX, TURRET_ROTATION_INCREMENT); */
 
                 /*
                 // CONTROL: ROTATING TRAY USING FSM

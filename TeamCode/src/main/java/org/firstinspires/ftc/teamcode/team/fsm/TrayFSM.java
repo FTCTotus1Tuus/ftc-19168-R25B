@@ -31,12 +31,12 @@ public class TrayFSM {
 
     // Tray positions (six known positions: three intake positions and three scoring positions)
     // Values provided by user (DarienOpModeFSM.java)
-    public static final double TRAY_POS_1_INTAKE = 0.275;
-    public static final double TRAY_POS_2_INTAKE = 0.205;
-    public static final double TRAY_POS_3_INTAKE = 0.350;
-    public static final double TRAY_POS_1_SCORE  = 0.385;
-    public static final double TRAY_POS_2_SCORE  = 0.310;
-    public static final double TRAY_POS_3_SCORE  = 0.240;
+    public static final double TRAY_POS_1_INTAKE = 0.205;//275
+    public static final double TRAY_POS_2_INTAKE = 0.275;//205
+    public static final double TRAY_POS_3_INTAKE = 0.350;//350
+    public static final double TRAY_POS_1_SCORE  = 0.385;//385
+    public static final double TRAY_POS_2_SCORE  = 0.310;//310
+    public static final double TRAY_POS_3_SCORE  = 0.240;//240
 
     // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 1..3)
     private final double[] slotPositions = new double[]{TRAY_POS_1_INTAKE, TRAY_POS_2_INTAKE, TRAY_POS_3_INTAKE};
@@ -84,7 +84,7 @@ public class TrayFSM {
 
     // After a ball is detected and the intake motors stop, wait this many seconds for the ball to settle
     // into the tray slot before rotating to the next slot. Tunable via Dashboard.
-    public static double BALL_SETTLE_TIME = 0.5;
+    public static double BALL_SETTLE_TIME = 0.75;
 
     // Sliding-window detection
     private final int windowSize = 5; // number of recent samples to consider
@@ -434,6 +434,29 @@ public class TrayFSM {
         rubberBands.setPower(0.0);
         intakeRoller.setPower(0.0);
         state = State.DONE;
+    }
+
+    /**
+     * Forcefully stop the auto-intake immediately.
+     * Stops motors, clears detection buffer, resets servo ignore timers, and sets FSM to IDLE
+     * so it can be restarted cleanly with startAutoIntake().
+     */
+    public void forceStopAutoIntake() {
+        // stop motors immediately
+        rubberBands.setPower(0.0);
+        intakeRoller.setPower(0.0);
+        // clear detection buffer and reset window index
+        Arrays.fill(detectionWindow, SlotState.EMPTY);
+        windowIndex = 0;
+        // reset servo-ignore timer so sensor sampling resumes immediately once restarted
+        servoIgnoreUntil = 0.0;
+        // set FSM to IDLE to prevent further state transitions until user restarts
+        state = State.IDLE;
+        // optional telemetry feedback
+        if (telemetry != null) {
+            telemetry.addData("TrayFSM", "FORCE_STOP");
+            telemetry.update();
+        }
     }
 
     /**
