@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
@@ -30,6 +31,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // VARIABLES
     private double shotStartTime;
     private boolean shotStarted = false;
+    private boolean isReadingAprilTag = false;
 
     // Track previous bumper state for edge detection
     private boolean prevRightBumper = false;
@@ -42,7 +44,14 @@ public class TeleOpFSM extends DarienOpModeFSM {
         }
         return Math.max(min, Math.min(max, v));
     }
-
+    /**
+     *
+     * @param angle
+     * @return normalized angle to (-pi, pi]
+     */
+    private double normalizeRadians(double angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle));
+    }
     @Override
     public void initControls() {
         super.initControls();
@@ -112,6 +121,45 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // -----------------
                 // MANUAL CONTROLS: only allowed when not in shooting macro
                 // -----------------
+
+                //CONTROL: POINT TURRET TO GOAL
+                // ALIGN TO BLUE GOAL
+                // TODO: Add controls for aligning to blue goal
+
+                // ALIGN TO RED GOAL
+                if (gamepad2.a && !isReadingAprilTag) {
+                    //point robot at red goal if gamepad1 right trigger is pressed
+                    tagFSM.start(getRuntime());
+                    isReadingAprilTag = true;
+
+                } else if (isReadingAprilTag) {
+                    tagFSM.update(getRuntime(), true, telemetry);
+                    telemetry.addLine("Reading...");
+
+                    if (tagFSM.isDone()) {
+                        telemetry.addLine("DONE READING!");
+                        isReadingAprilTag = false;
+                        aprilTagDetections = tagFSM.getDetections();
+                        //aprilTagDetections.removeIf(tag -> tag.id != 24);
+                        aprilTagDetections.removeIf(tag -> tag.id == 20 || tag.id == 21 || tag.id == 22 || tag.id == 23);
+                        if (!aprilTagDetections.isEmpty()) {
+                            telemetry.addLine("FOUND APRILTAG!");
+                            tagFSM.telemetryAprilTag(telemetry);
+                            // Rotate the turret only if an apriltag is detected and it's the red goal apriltag id
+                            AprilTagDetection detection = aprilTagDetections.get(0);
+                            if (detection.id == 24) {
+                                telemetry.addLine("ALIGNING TO GOAL...");
+                                double currentHeading = 0;
+                                double relativeHeading = detection.ftcPose.bearing;
+                                double targetHeading = normalizeRadians(currentHeading + relativeHeading);
+                                currentTurretPosition = clampT(targetHeading,TURRET_ROTATION_MIN,TURRET_ROTATION_MAX);
+
+                                turretServo.setPosition(currentTurretPosition);
+                            } // end detection.id == 24
+                        } // end detection is empty
+                    } // end tagFSM is done
+
+                } // end Red Goal April Tag
 
                 //CONTROL: EJECTION MOTORS
                 if (gamepad2.right_trigger > 0.05 && gamepad2.right_stick_y >= -0.05) {
