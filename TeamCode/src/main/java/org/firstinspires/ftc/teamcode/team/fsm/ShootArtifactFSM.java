@@ -1,13 +1,16 @@
 package org.firstinspires.ftc.teamcode.team.fsm;
 
+import com.acmerobotics.dashboard.config.Config;
+
+@Config
+
 public class ShootArtifactFSM {
 
     public enum ShootingStage {
         IDLE,
-        ELEVATOR_UP,
         SHOTGUN_SPINUP,
-        FEEDER_UP,
-        FINISHING,
+        ELEVATOR_UP,
+        ELEVATOR_DOWN,
         FINISHED
     }
 
@@ -19,10 +22,9 @@ public class ShootArtifactFSM {
     private double shootingPower = 0;
 
     // Timings (seconds)
-    private static final double STAGE1_DELAY = .200;    // elevator up -> shotgun start
-    private static final double STAGE2_DELAY = .800;    // shotgun running before feeder
-    private static final double STAGE3_DELAY = .500;    // feeder up while spinning
-    private static final double STAGE4_DELAY = .100;    // Allow the servos to finish their movement
+    public static double ELEVATOR_UP_DELAY = .700;    // elevator up delay
+    public static double ELEVATOR_DOWN_DELAY = .400;   //elevator down delay
+    public static double SPINUP_DELAY = .800;    // shotgun running before elevator up
 
     public ShootArtifactFSM(DarienOpModeFSM opMode) {
         this.opMode = opMode;
@@ -35,10 +37,8 @@ public class ShootArtifactFSM {
             shotGun(shootingPower);
         }
 
-        shootingStage = ShootingStage.ELEVATOR_UP;
         shootingStartTime = opMode.getRuntime();
-
-        opMode.Elevator.setPosition(DarienOpModeFSM.ELEVATOR_POS_UP);
+        shootingStage = ShootingStage.SHOTGUN_SPINUP;
     }
 
     // Call this inside loop() or inside your main auto while-loop
@@ -52,34 +52,28 @@ public class ShootArtifactFSM {
 
         switch (shootingStage) {
 
-            case ELEVATOR_UP:
-                if (currentTime - shootingStartTime >= STAGE1_DELAY) {
-                    shootingStage = ShootingStage.SHOTGUN_SPINUP;
-                    shootingStartTime = currentTime; // Reset timer for next stage
-                }
-                break;
-
             case SHOTGUN_SPINUP:
                 // If the pattern has already spun up the shotgun, there's no need to wait for the delay here.
-                if (ejectionMotorsControlledByPattern || currentTime - shootingStartTime >= STAGE2_DELAY) {
-                    //opMode.Feeder.setPosition(DarienOpModeFSM.FEEDER_POS_UP);
-                    shootingStage = ShootingStage.FEEDER_UP;
+                if (ejectionMotorsControlledByPattern || currentTime - shootingStartTime >= SPINUP_DELAY) {
+                    shootingStartTime = currentTime; // Reset timer for next stage
+                    shootingStage = ShootingStage.ELEVATOR_UP;
+                }
+                break;
+
+            case ELEVATOR_UP:
+                opMode.Elevator.setPosition(DarienOpModeFSM.ELEVATOR_POS_UP);
+                if (currentTime - shootingStartTime >= ELEVATOR_UP_DELAY) {
+                    shootingStage = ShootingStage.ELEVATOR_DOWN;
                     shootingStartTime = currentTime; // Reset timer for next stage
                 }
                 break;
 
-            case FEEDER_UP:
-                if (currentTime - shootingStartTime >= STAGE3_DELAY) {
+            case ELEVATOR_DOWN:
+                opMode.Elevator.setPosition(DarienOpModeFSM.ELEVATOR_POS_DOWN);
+                if (currentTime - shootingStartTime >= ELEVATOR_DOWN_DELAY) {
                     if (!ejectionMotorsControlledByPattern) {
                         shotGunStop();
                     }
-                    //opMode.Feeder.setPosition(DarienOpModeFSM.FEEDER_POS_DOWN);
-                    opMode.Elevator.setPosition(DarienOpModeFSM.ELEVATOR_POS_DOWN);
-                    shootingStage = ShootingStage.FINISHING;
-                }
-                break;
-            case FINISHING:
-                if (currentTime - shootingStartTime >= STAGE4_DELAY) {
                     shootingStage = ShootingStage.FINISHED;
                 }
                 break;

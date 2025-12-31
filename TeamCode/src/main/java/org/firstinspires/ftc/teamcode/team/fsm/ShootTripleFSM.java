@@ -1,0 +1,102 @@
+package org.firstinspires.ftc.teamcode.team.fsm;
+import com.acmerobotics.dashboard.config.Config;
+
+@Config
+public class ShootTripleFSM {
+
+    public enum Stage {
+        IDLE,
+        SHOTGUN_SPINUP,
+        ROTATE_TRAY,
+        WAIT_FOR_ROTATE,
+        SHOOT,
+    }
+
+    private final DarienOpModeFSM opMode;
+    private final ShootArtifactFSM shootArtifactFSM;
+
+    public ShootTripleFSM(DarienOpModeFSM opMode) {
+        this.opMode = opMode;
+        this.shootArtifactFSM = opMode.shootArtifactFSM;
+    }
+
+
+    private Stage nbStep = Stage.IDLE;
+    private int nbMotifIndex = 0;
+    private double nbLastActionTime = 0;
+    private boolean nbShootingActive = false;
+    private double shootPower = 0;
+    private boolean shotStarted = false;
+
+    public static double TRAY_DELAY = 1.5;
+    public static double SPINUP_DELAY = 1;
+
+    public void startShootTriple(double currentTime, double shootingPower) {
+        nbMotifIndex = 0;
+        nbShootingActive = true;
+        shootPower = shootingPower;
+        shootArtifactFSM.setEjectionMotorsControlledByPattern(true);
+        shootArtifactFSM.shotGun(shootPower);
+        nbLastActionTime = currentTime;
+        nbStep = Stage.SHOTGUN_SPINUP;
+    }
+
+    public void updateShootTriple(double currentTime) {
+        if (!nbShootingActive) return;
+
+        int[] motif = null;
+        // Motif order: 1=TRAY_POS_1_SCORE, 2=TRAY_POS_2_SCORE, 3=TRAY_POS_3_SCORE
+        motif = new int[]{1, 2, 3};
+
+        if (nbMotifIndex >= motif.length) {
+            nbShootingActive = false;
+            shootArtifactFSM.shotGunStop(); // Stop motors
+            shootArtifactFSM.setEjectionMotorsControlledByPattern(false);
+            return;
+        }
+
+        switch (nbStep) {
+            case SHOTGUN_SPINUP:
+                if (currentTime - nbLastActionTime >= SPINUP_DELAY) {
+                    nbLastActionTime = currentTime;
+                    nbStep = Stage.ROTATE_TRAY;
+                }
+                break;
+            case ROTATE_TRAY: // Move tray
+                double targetPos = (motif[nbMotifIndex] == 1) ? DarienOpModeFSM.TRAY_POS_1_SCORE :
+                        (motif[nbMotifIndex] == 2) ? DarienOpModeFSM.TRAY_POS_2_SCORE :
+                                DarienOpModeFSM.TRAY_POS_3_SCORE;
+                //opMode.servoIncremental(opMode.TrayServo, targetPos, opMode.currentTrayPosition, 1, 4);
+                //opMode.currentTrayPosition = targetPos;
+                opMode.setTrayPosition(targetPos);
+                nbLastActionTime = currentTime;
+                nbStep = Stage.WAIT_FOR_ROTATE;
+                shotStarted = false; // Reset for next shot
+                break;
+            case WAIT_FOR_ROTATE: // Wait for tray move
+                if (currentTime - nbLastActionTime >= TRAY_DELAY) {
+                    nbLastActionTime = currentTime;
+                    nbStep = Stage.SHOOT;
+                }
+                break;
+            case SHOOT: // Shoot and wait for completion
+                if (!shotStarted) {
+                    shootArtifactFSM.startShooting(shootPower);
+                    shotStarted = true;
+                    nbLastActionTime = currentTime;
+                }
+                shootArtifactFSM.updateShooting();
+                if (shootArtifactFSM.shootingDone() || currentTime - nbLastActionTime >= 2.0) {
+                    shootArtifactFSM.resetShooting();
+                    nbMotifIndex++;
+                    nbStep = Stage.ROTATE_TRAY;
+                }
+                break;
+        }
+    }
+
+    public boolean isDone() {
+        return !nbShootingActive;
+    }
+
+}

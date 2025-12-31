@@ -7,12 +7,10 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -33,7 +31,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public ShootPatternFSM shootPatternFSM;
     public ShootArtifactFSM shootArtifactFSM;
     public TrayFSM trayFSM;
-
+    public ShootTripleFSM shootTripleFSM;
     // AprilTag
     public ArrayList<AprilTagDetection> aprilTagDetections;
     public AprilTagProcessor aprilTag;
@@ -59,16 +57,16 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     // HARDWARE TUNING CONSTANTS
     public static double TRAY_SERVO_DURATION_ROTATE = 1.5; // seconds
-    public static double TRAY_POS_1_INTAKE = 0.275;
-    public static double TRAY_POS_2_INTAKE = 0.205;
-    public static double TRAY_POS_3_INTAKE = 0.350;
-    public static double TRAY_POS_1_SCORE = 0.385;
-    public static double TRAY_POS_2_SCORE = 0.310;
-    public static double TRAY_POS_3_SCORE = 0.240;
+    public static double TRAY_POS_1_INTAKE = 0.21;//275
+    public static double TRAY_POS_2_INTAKE = 0.279;//205
+    public static double TRAY_POS_3_INTAKE = 0.355;
+    public static double TRAY_POS_1_SCORE = 0.39;
+    public static double TRAY_POS_2_SCORE = 0.318;
+    public static double TRAY_POS_3_SCORE = 0.248;
     public static final double ELEVATOR_POS_UP = 0.85;
     public static final double ELEVATOR_POS_DOWN = 0.45;
     public static double SHOT_GUN_POWER_UP = 0.60;
-    public static double SHOT_GUN_POWER_UP_FAR = 0.80;
+    public static double SHOT_GUN_POWER_UP_FAR = 0.66;
     public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
     public static final double TIMEOUT_APRILTAG_DETECTION = 3;
     public static double INTAKE_RUBBER_BANDS_POWER = 1;
@@ -76,8 +74,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double INTAKE_INTAKE_ROLLER_POWER = 1;
     public static double OUTPUT_INTAKE_ROLLER_POWER = 0.2;
     public static double TURRET_ROTATION_INCREMENT = 0.001;
-    public static double TURRET_ROTATION_MIN = 0.63;
-    public static double TURRET_ROTATION_MAX = 0.3;
+    public static double TURRET_ROTATION_MAX_LEFT = 0.63;
+    public static double TURRET_ROTATION_MAX_RIGHT = 0.3;
 
     public double currentTrayPosition;
     public double currentTurretPosition;
@@ -123,7 +121,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
-        trayFSM = new TrayFSM(TrayServo, rubberBands, intakeRoller, intakeColorSensor, telemetry);
+        trayFSM = new TrayFSM(this, TrayServo, rubberBands, intakeRoller, intakeColorSensor, telemetry);
+        shootTripleFSM = new ShootTripleFSM(this);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position
