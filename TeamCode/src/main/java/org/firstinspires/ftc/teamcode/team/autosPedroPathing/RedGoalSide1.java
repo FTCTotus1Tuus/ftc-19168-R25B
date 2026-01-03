@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 /**
  * Pedro Pathing auto using LinearOpMode via DarienOpModeFSM.
  */
-@Disabled
+
 @Autonomous(name = "RedGoalSidePedro", group = "Pedro:Reds", preselectTeleOp = "TeleopFSM")
 @Configurable
 public class RedGoalSide1 extends DarienOpModeFSM {

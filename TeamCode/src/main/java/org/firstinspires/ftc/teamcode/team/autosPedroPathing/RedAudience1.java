@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 
-@Disabled
+
 @Autonomous(name = "RedAudienceSidePedro", group = "Pedro:Reds", preselectTeleOp = "TeleopFSM")
 @Configurable
 public class RedAudience1 extends DarienOpModeFSM {
