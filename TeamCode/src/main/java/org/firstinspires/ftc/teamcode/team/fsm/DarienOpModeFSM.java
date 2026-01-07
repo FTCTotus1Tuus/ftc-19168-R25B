@@ -7,6 +7,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -45,7 +46,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     // HARDWARE DEVICES
     public Servo TrayServo, Elevator, turretServo;
     public CRServo rubberBands, intakeRoller, topIntake;
-    public DcMotor ejectionMotor;
+    public DcMotorEx ejectionMotor;
 
     public NormalizedColorSensor intakeColorSensor;
 
@@ -55,6 +56,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static final double constMult = (wheelDiameter * (Math.PI));
     public static final double inchesToEncoder = encoderResolution / constMult;
     public static final double PI = 3.1416;
+    public static final double TICKS_PER_ROTATION = 28; // for goBILDA 6000 rpm motor 5203
 
     // HARDWARE TUNING CONSTANTS
     public static double TRAY_SERVO_DURATION_ROTATE = 1.5; // seconds
@@ -68,6 +70,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static final double ELEVATOR_POS_DOWN = 0.45;
     public static double SHOT_GUN_POWER_UP = 0.60;
     public static double SHOT_GUN_POWER_UP_FAR = 0.66;
+    public static double SHOT_GUN_POWER_UP_RPM = 2800; // tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_UP_FAR_RPM = 3600; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
     public static final double TIMEOUT_APRILTAG_DETECTION = 3;
     public static double INTAKE_RUBBER_BANDS_POWER = 1;
@@ -109,8 +113,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
 
         // INITIALIZE MOTORS
-        ejectionMotor = hardwareMap.get(DcMotor.class, "ejectionMotor");
-        ejectionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        ejectionMotor = hardwareMap.get(DcMotorEx.class, "ejectionMotor");
+        ejectionMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
         initAprilTag();
 
@@ -221,6 +225,19 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         double currentVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
         double scale = nominalVoltage / currentVoltage;
         return power * scale;
+    }
+
+    public double getTicksPerSecond(double requestedRPM) {
+        try {
+            double targetRPM = requestedRPM;
+            double ticksPerSecond = (targetRPM / 60.0) * TICKS_PER_ROTATION;
+            return ticksPerSecond;
+        }
+        catch (Exception e) {
+            // telemetry.addData("Ticks/Sec Adjustment Error", e.getMessage());
+            return requestedRPM; // if error, return requested power unmodified
+        }
+
     }
 
     /** Clamp a value between a minimum and maximum.

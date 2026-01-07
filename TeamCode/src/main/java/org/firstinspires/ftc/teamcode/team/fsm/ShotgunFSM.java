@@ -1,15 +1,13 @@
 package org.firstinspires.ftc.teamcode.team.fsm;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-
-import org.firstinspires.ftc.teamcode.team.DarienOpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class ShotgunFSM {
 
     private final DarienOpModeFSM opmode;
     private final double SHOT_GUN_POWER_UP;
     private final double SHOT_GUN_POWER_UP_FAR;
-    private final DcMotor shotgunMotor;
+    private final DcMotorEx shotgunMotor;
 
     public enum State {
         OFF,
@@ -19,7 +17,7 @@ public class ShotgunFSM {
 
     private State current = State.OFF;
 
-    public ShotgunFSM(double powerlow, double powerhigh, DcMotor motor, DarienOpModeFSM opmode) {
+    public ShotgunFSM(double powerlow, double powerhigh, DcMotorEx motor, DarienOpModeFSM opmode) {
         this.SHOT_GUN_POWER_UP = powerlow;
         this.SHOT_GUN_POWER_UP_FAR = powerhigh;
         this.shotgunMotor = motor;
@@ -44,12 +42,14 @@ public class ShotgunFSM {
 
     public void toPowerUp() {
         current = State.POWER_UP;
-        shotgunMotor.setPower(opmode.getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP));
+       // shotgunMotor.setPower(opmode.getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP));
+        shotgunMotor.setVelocity(opmode.getTicksPerSecond(opmode.SHOT_GUN_POWER_UP_RPM));
     }
 
     public void toPowerUpFar() {
         current = State.POWER_UP_FAR;
-        shotgunMotor.setPower(opmode.getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP_FAR));
+       // shotgunMotor.setPower(opmode.getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP_FAR));
+        shotgunMotor.setVelocity(opmode.getTicksPerSecond(opmode.SHOT_GUN_POWER_UP_FAR_RPM));
     }
 
 }

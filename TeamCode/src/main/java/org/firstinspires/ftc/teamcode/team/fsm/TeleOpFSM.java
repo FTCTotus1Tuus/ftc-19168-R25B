@@ -263,7 +263,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // Edge-triggered start: press right bumper to start triple shoot
                 else if (gamepad2.right_bumper && !tripleShotStarted) {
                     // ONLY START IF IN MANUAL CONTROL MODE
-                    double power = (gamepad2.right_stick_y < -0.05) ? SHOT_GUN_POWER_UP_FAR : SHOT_GUN_POWER_UP;
+                    double power = (gamepad2.right_stick_y < -0.05) ? SHOT_GUN_POWER_UP_FAR : SHOT_GUN_POWER_UP;//todo; MANUAL POWER UP FAR NOT WORKING
                     shootTripleFSM.startShootTriple(getRuntime(), power); // start the 1,2,3 sequence
                     tripleShotStartTime = getRuntime();
                     tripleShotStarted = true;
