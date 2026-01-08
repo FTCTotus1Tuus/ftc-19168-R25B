@@ -164,99 +164,32 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
                 } // end Red Goal April Tag
 
-                //CONTROL: EJECTION MOTORS
-                if (!trayFSM.isAutoIntakeRunning()) {
-                    if (gamepad2.right_stick_y > 0.05) {
-                        // close shot
-                        shotgunFSM.toPowerUp();
-                    } else if (gamepad2.right_stick_y < -0.05) {
-                        // far shot
-                        shotgunFSM.toPowerUpFar();
-                    }
-                } else {
-                    shotgunFSM.toOff();
-                }
-
-                /*
-                if (gamepad2.right_trigger > 0.05 && gamepad2.right_stick_y >= -0.05) {
-                    ejectionMotor.setPower(getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP));
-                } else if (gamepad2.right_trigger > 0.05 && gamepad2.right_stick_y < -0.05) {
-                    ejectionMotor.setPower(getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP_FAR));
-                } else if (gamepad2.left_trigger > 0.05) {
-                    ejectionMotor.setPower(-getVoltageAdjustedMotorPower(SHOT_GUN_POWER_DOWN));
-                } else {
-                    ejectionMotor.setPower(0);
-                }
-
-                 */
-
                 //CONTROL: ELEVATOR
                 if (gamepad2.left_bumper) {
                     Elevator.setPosition(ELEVATOR_POS_UP);
                 } else {
                     Elevator.setPosition(ELEVATOR_POS_DOWN);
                 }
-
-                // CONTROL: ROTATING TRAY
-                /*
-                if (gamepad2.dpad_left) {
-                    setTrayPosition(TRAY_POS_1_INTAKE);
-                    //servoIncremental(TrayServo, TRAY_POS_1_INTAKE, currentTrayPosition, 1, 4);
-                    //currentTrayPosition = TRAY_POS_1_INTAKE;
-                } else if (gamepad2.x) {
-                    setTrayPosition(TRAY_POS_1_SCORE);
-                    //servoIncremental(TrayServo, TRAY_POS_1_SCORE, currentTrayPosition, 1, 4);
-                    //currentTrayPosition = TRAY_POS_1_SCORE;
-                } else if (gamepad2.dpad_up) {
-                    setTrayPosition(TRAY_POS_2_INTAKE);
-                    //servoIncremental(TrayServo, TRAY_POS_2_INTAKE, currentTrayPosition, 1, 4);
-                    //currentTrayPosition = TRAY_POS_2_INTAKE;
-                } else if (gamepad2.y) {
-                    setTrayPosition(TRAY_POS_2_SCORE);
-                    //servoIncremental(TrayServo, TRAY_POS_2_SCORE, currentTrayPosition, 1, 4);
-                    //currentTrayPosition = TRAY_POS_2_SCORE;
-                } else if (gamepad2.dpad_right) {
-                    setTrayPosition(TRAY_POS_3_INTAKE);
-                    //servoIncremental(TrayServo, TRAY_POS_3_INTAKE, currentTrayPosition, 1, 4);
-                    //currentTrayPosition = TRAY_POS_3_INTAKE;
-                } else if (gamepad2.b && !gamepad2.start) {
-                    setTrayPosition(TRAY_POS_3_SCORE);
-                    //servoIncremental(TrayServo, TRAY_POS_3_SCORE, currentTrayPosition, 1, 4);
-                    //currentTrayPosition = TRAY_POS_3_SCORE;
-                }
-
-                 */
-
-                /*
                 // CONTROL: ROTATING TRAY USING FSM
-                if (gamepad2.dpad_left && gamepad2.back) {
-                    setTrayPosition(TRAY_POS_1_INTAKE);
-                } else if (gamepad2.x && gamepad2.back) {
+                if (gamepad2.dpad_left) {
                     setTrayPosition(TRAY_POS_1_SCORE);
-                } else if (gamepad2.dpad_up && gamepad2.back) {
-                    setTrayPosition(TRAY_POS_2_INTAKE);
-                } else if (gamepad2.y && gamepad2.back) {
+                } else if (gamepad2.dpad_up) {
                     setTrayPosition(TRAY_POS_2_SCORE);
-                } else if (gamepad2.dpad_right && gamepad2.back) {
-                    setTrayPosition(TRAY_POS_3_INTAKE);
-                } else if (gamepad2.b && gamepad2.back) {
+                } else if (gamepad2.dpad_right) {
                     setTrayPosition(TRAY_POS_3_SCORE);
                 }
-
-                 */
 
                 // -----------------
                 // IMPORTANT: ALWAYS PUT MACRO CONTROLS AFTER MANUAL CONTROLS
                 // -----------------
 
                 //CONTROL: START SHOTGUN MACRO USING FSM
-                if (gamepad2.dpad_down && gamepad2.right_trigger > 0.05) {
-                    // TODO: pre-spin up the shotgun before starting the shooting FSM
-                    if (gamepad2.right_stick_y < -0.05) {
-                        shootArtifactFSM.startShooting(SHOT_GUN_POWER_UP_FAR);
-                    } else {
-                        shootArtifactFSM.startShooting(SHOT_GUN_POWER_UP);
-                    }
+                if (gamepad2.dpad_down && gamepad2.right_stick_y < -0.05) {
+                    shootArtifactFSM.startShooting(SHOT_GUN_POWER_UP_FAR);
+                    shotStartTime = getRuntime();
+                    shotStarted = true;
+                } else if (gamepad2.dpad_down) {
+                    shootArtifactFSM.startShooting(SHOT_GUN_POWER_UP);
                     shotStartTime = getRuntime();
                     shotStarted = true;
                 }
@@ -264,10 +197,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // CONTROL: START TRIPLE SHOT MACRO USING FSM
 
                 // Edge-triggered start: press right bumper to start triple shoot
-                else if (gamepad2.right_bumper && !tripleShotStarted) {
-                    // ONLY START IF IN MANUAL CONTROL MODE
-                    double power = (gamepad2.right_stick_y < -0.05) ? SHOT_GUN_POWER_UP_FAR : SHOT_GUN_POWER_UP;//todo; MANUAL POWER UP FAR NOT WORKING
-                    shootTripleFSM.startShootTriple(getRuntime(), power); // start the 1,2,3 sequence
+                else if (gamepad2.right_bumper && gamepad2.right_stick_y < -0.05) {
+                    shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP_FAR);
+                    tripleShotStartTime = getRuntime();
+                    tripleShotStarted = true;
+                } else if (gamepad2.right_bumper) {
+                    shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP);
                     tripleShotStartTime = getRuntime();
                     tripleShotStarted = true;
                 }
@@ -327,6 +262,41 @@ public class TeleOpFSM extends DarienOpModeFSM {
             }
             /*    telemetry.addData("TurretPos", "%.3f", currentTurretPosition);
                 telemetry.addData("Turret Min/Max/Inc", "%.3f / %.3f / %.3f", TURRET_ROTATION_MIN, TURRET_ROTATION_MAX, TURRET_ROTATION_INCREMENT); */
+
+            //CONTROL: EJECTION MOTORS
+            if (!trayFSM.isAutoIntakeRunning()) {
+                //Latch control
+                if (gamepad2.right_stick_y < -.05) {
+                    isHighPower = true;
+                } else if (gamepad2.right_stick_y > 0.05) {
+                    isHighPower = false;
+                }
+                if (isHighPower) {
+                    shotgunFSM.toPowerUpFar();
+                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM);
+                } else {
+                    shotgunFSM.toPowerUp();
+                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
+                }
+
+                /*
+                if (gamepad2.right_stick_y > 0.05) {
+                    // close shot
+                    shotgunFSM.toPowerUp();
+                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
+                    isHighPower = false;
+                } else if (gamepad2.right_stick_y < -0.05 && isHighPower) {
+                    // far shot
+                    shotgunFSM.toPowerUpFar();
+                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM);
+                    isHighPower = true;
+                }
+
+                 */
+            } else {
+                shotgunFSM.toOff();
+            }
+            telemetry.addData("Actual ShotGun RPM", ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM
 
             telemetry.update();
         } //while opModeIsActive

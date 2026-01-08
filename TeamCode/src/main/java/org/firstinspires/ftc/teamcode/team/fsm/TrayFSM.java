@@ -139,7 +139,7 @@ public class TrayFSM {
             for (int i = 0; i < 3; i++) {
                 telemetry.addData("Slot " + (i + 1), slots[i].toString());
             }
-            telemetry.update();
+            //telemetry.update();
             return;
         }
 
@@ -293,7 +293,7 @@ public class TrayFSM {
         telemetry.addData("ServoIgnoreRemaining", "%.2fs", ignoreRemaining);
         telemetry.addData("IgnoringSensorInput", "%s", ignoreRemaining > 0.0 ? "YES" : "NO");
 
-         telemetry.update();
+         //telemetry.update();
      }
 
     // Move servo to the given intake slot index (0..2)
@@ -465,7 +465,7 @@ public class TrayFSM {
         // optional telemetry feedback
         if (telemetry != null) {
             telemetry.addData("TrayFSM", "FORCE_STOP");
-            telemetry.update();
+            //telemetry.update();
         }
     }
 

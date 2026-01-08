@@ -82,8 +82,10 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double TURRET_ROTATION_MAX_LEFT = 0.63;
     public static double TURRET_ROTATION_MAX_RIGHT = 0.3;
 
+    // DYNAMIC VARIABLES
     public double currentTrayPosition;
     public double currentTurretPosition;
+    public boolean isHighPower = false;
 
     // Abstract method for child classes to implement
     @Override
