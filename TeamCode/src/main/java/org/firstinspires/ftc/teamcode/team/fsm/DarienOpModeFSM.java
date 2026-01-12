@@ -34,6 +34,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public TrayFSM trayFSM;
     public ShootTripleFSM shootTripleFSM;
     public ShotgunFSM shotgunFSM;
+    public TurretFSM turretFSM;
+
     // AprilTag
     public ArrayList<AprilTagDetection> aprilTagDetections;
     public AprilTagProcessor aprilTag;
@@ -57,6 +59,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static final double inchesToEncoder = encoderResolution / constMult;
     public static final double PI = 3.1416;
     public static final double TICKS_PER_ROTATION = 28; // for goBILDA 6000 rpm motor 5203
+    public static final int FIVE_ROTATION_SERVO_SPAN_DEG = 1800; // Degrees of rotation (5-rotation goBILDA servo)
+    public static final int RATIO_BETWEEN_TURRET_GEARS = 6;
 
     // HARDWARE TUNING CONSTANTS
     public static double TRAY_SERVO_DURATION_ROTATE = 1.5; // seconds
@@ -85,7 +89,11 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     // DYNAMIC VARIABLES
     public double currentTrayPosition;
     public double currentTurretPosition;
-    public boolean isHighPower = false;
+    public enum ShotgunPowerLevel {
+        OFF,
+        LOW,
+        HIGH
+    }
 
     // Abstract method for child classes to implement
     @Override
@@ -127,6 +135,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         trayFSM = new TrayFSM(this, TrayServo, rubberBands, intakeRoller, topIntake, intakeColorSensor, telemetry);
         shootTripleFSM = new ShootTripleFSM(this);
         shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
+        turretFSM = new TurretFSM(this);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position

@@ -11,6 +11,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
+import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "TeleopFSM", group = "DriverControl")
 @Config
@@ -34,6 +35,21 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
     // Track previous bumper state for edge detection
     private boolean prevRightBumper = false;
+    private ShotgunPowerLevel shotgunPowerLatch = ShotgunPowerLevel.LOW;
+
+    // AUTOMATIC TURRET CONTROLS BASED ON CAMERA APRILTAG DETECTION
+    AprilTagDetection detection;
+    double yaw; // Stores detection.ftcPose.yaw
+    double currentHeadingDeg;
+    double relativeHeadingDeg; // Camera-relative bearing to AprilTag (degrees)
+    double targetServoPos = Double.NaN; // Convert heading → servo position
+    double rawBearingDeg; // Stores detection.ftcPose.bearing;
+
+    // cameraOffsetX < 0 if camera is mounted on the LEFT
+    public static double cameraOffsetX = 0.105; // in centimeter, positive is right, negative is left
+    double correctedBearingRad;
+    double correctedBearingDeg;
+    boolean isCalculatingTurretTargetPosition = false;
 
     //private clamp test
     private static double clampT(double v, double min, double max) {
@@ -43,14 +59,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
         }
         return Math.max(min, Math.min(max, v));
     }
-    /**
-     *
-     * @param angle
-     * @return normalized angle to (-pi, pi]
-     */
-    private double normalizeRadians(double angle) {
-        return Math.atan2(Math.sin(angle), Math.cos(angle));
-    }
+
     @Override
     public void initControls() {
         super.initControls();
@@ -111,8 +120,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
             // Update trayFSM state machine each loop so it can run when toggled on
             trayFSM.update();
-            if (!trayFSM.isAutoIntakeRunning()) {
-                    shotgunFSM.toPowerUp();
+            if (!trayFSM.isAutoIntakeRunning() && shotgunPowerLatch != ShotgunPowerLevel.OFF) {
+                shotgunFSM.toPowerUp();
             }
 
 
@@ -130,7 +139,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // TODO: Add controls for aligning to blue goal
 
                 // ALIGN TO RED GOAL
-                if (gamepad2.a && !isReadingAprilTag) {
+                if (gamepad2.b && !isReadingAprilTag) {
                     //point robot at red goal if gamepad1 right trigger is pressed
                     tagFSM.start(getRuntime());
                     isReadingAprilTag = true;
@@ -149,20 +158,36 @@ public class TeleOpFSM extends DarienOpModeFSM {
                             telemetry.addLine("FOUND APRILTAG!");
                             tagFSM.telemetryAprilTag(telemetry);
                             // Rotate the turret only if an apriltag is detected and it's the red goal apriltag id
-                            AprilTagDetection detection = aprilTagDetections.get(0);
+                            detection = aprilTagDetections.get(0);
                             if (detection.id == 24) {
                                 telemetry.addLine("ALIGNING TO GOAL...");
-                                double currentHeading = 0;
-                                double relativeHeading = detection.ftcPose.bearing;
-                                double targetHeading = normalizeRadians(currentHeading + relativeHeading);
-                                currentTurretPosition = clampT(targetHeading, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
+                                yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
-                                turretServo.setPosition(currentTurretPosition);
+                                // Current turret heading (degrees)
+                                currentHeadingDeg = turretFSM.getTurretHeading(); // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
+
+                                // Camera-relative bearing to AprilTag (degrees)
+                                rawBearingDeg = detection.ftcPose.bearing;
+
+                                if (!isCalculatingTurretTargetPosition) {
+                                    isCalculatingTurretTargetPosition = true;
+                                    targetServoPos = currentTurretPosition + RATIO_BETWEEN_TURRET_GEARS * rawBearingDeg / FIVE_ROTATION_SERVO_SPAN_DEG;
+                                    //targetServoPos = Range.clip(targetServoPos, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
+                                }
+                                //turretServo.setPosition(targetServoPos);
+                                //currentTurretPosition = targetServoPos;
                             } // end detection.id == 24
                         } // end detection is empty
                     } // end tagFSM is done
+                    isCalculatingTurretTargetPosition = false;
 
                 } // end Red Goal April Tag
+
+                telemetry.addData("yaw", yaw);
+                telemetry.addData("Raw Bearing Deg (alpha)", rawBearingDeg);
+                telemetry.addData("currentHeadingDeg (C0)", currentHeadingDeg);
+                telemetry.addData("currentTurretPosition", currentTurretPosition);
+                telemetry.addData("targetServoPos", targetServoPos);
 
                 //CONTROL: ELEVATOR
                 if (gamepad2.left_bumper) {
@@ -260,6 +285,10 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 //sets turret position
                 turretServo.setPosition(currentTurretPosition);
             }
+            else if (gamepad2.leftStickButtonWasPressed() && !Double.isNaN(targetServoPos)) {
+                currentTurretPosition = targetServoPos;
+                turretServo.setPosition(targetServoPos);
+            }
             /*    telemetry.addData("TurretPos", "%.3f", currentTurretPosition);
                 telemetry.addData("Turret Min/Max/Inc", "%.3f / %.3f / %.3f", TURRET_ROTATION_MIN, TURRET_ROTATION_MAX, TURRET_ROTATION_INCREMENT); */
 
@@ -267,17 +296,40 @@ public class TeleOpFSM extends DarienOpModeFSM {
             if (!trayFSM.isAutoIntakeRunning()) {
                 //Latch control
                 if (gamepad2.right_stick_y < -.05) {
-                    isHighPower = true;
+                    shotgunPowerLatch = ShotgunPowerLevel.HIGH;
                 } else if (gamepad2.right_stick_y > 0.05) {
-                    isHighPower = false;
+                    shotgunPowerLatch = ShotgunPowerLevel.LOW;
+                } else if (gamepad2.rightStickButtonWasPressed()) {
+                    shotgunPowerLatch = ShotgunPowerLevel.OFF;
                 }
-                if (isHighPower) {
+                switch (shotgunPowerLatch) {
+                    case OFF:
+                        shotgunFSM.toOff();
+                        telemetry.addData("Requested ShotGun RPM", 0);
+                        break;
+                    case HIGH:
+                        shotgunFSM.toPowerUpFar();
+                        telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM);
+                        break;
+                    default:
+                    case LOW:
+                        shotgunFSM.toPowerUp();
+                        telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
+                        break;
+                }
+                /*
+                if (shotgunPowerLatch == DarienOpModeFSM.shotgunPowerLevel.HIGH) {
                     shotgunFSM.toPowerUpFar();
                     telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM);
+                } else if (shotgunPowerLatch == DarienOpModeFSM.shotgunPowerLevel.OFF){
+                    shotgunFSM.toOff();
+                    telemetry.addData("Requested ShotGun RPM", 0);
                 } else {
                     shotgunFSM.toPowerUp();
                     telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
                 }
+
+                 */
 
                 /*
                 if (gamepad2.right_stick_y > 0.05) {
