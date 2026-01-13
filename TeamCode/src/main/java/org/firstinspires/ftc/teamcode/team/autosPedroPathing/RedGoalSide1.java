@@ -101,8 +101,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
         public PathChain Path7;
         public PathChain Path8;
 
-
-        //67
+        // 67
         public Paths(Follower follower) {
             Path1 = follower
                     .pathBuilder()
@@ -126,7 +125,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                             new BezierCurve(
                                     new Pose(96.766, 96.443),
                                     new Pose(81.428, 87.768),
-                                    new Pose(94.670, 80.567)
+                                    new Pose(94.670, 83.567)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(35), Math.toRadians(0))
@@ -135,7 +134,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             Path4 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(94.670, 80.567), new Pose(104.670, 80.567))
+                            new BezierLine(new Pose(94.670, 83.567), new Pose(104.670, 83.567))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -143,7 +142,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             Path5 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(104.670, 80.567), new Pose(109.500, 80.567))
+                            new BezierLine(new Pose(104.670, 83.567), new Pose(109.500, 83.567))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -151,7 +150,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             Path6 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(109.500, 80.567), new Pose(116.500, 80.567))
+                            new BezierLine(new Pose(109.500, 83.567), new Pose(116.500, 83.567))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -160,9 +159,9 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(116.500, 80.567),
+                                    new Pose(116.500, 83.567),
                                     new Pose(99.436, 103.926),
-                                    new Pose(96.443, 119.383)
+                                    new Pose(94.443, 117.383)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(20))
@@ -179,7 +178,6 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                     .setTangentHeadingInterpolation()
                     .build();
         }
-
     }
 
     /**
@@ -244,7 +242,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
 
                 shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP);
 
-                if (pathTimer.getElapsedTimeSeconds() > 1.0) {
+                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
                     setPathState(pathState + 1);
                 }
                 break;
@@ -255,7 +253,9 @@ public class RedGoalSide1 extends DarienOpModeFSM {
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
 
-                    //rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
 
                     // now continue with next path
                     follower.followPath(paths.Path3, true);
@@ -268,7 +268,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 4.0) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 1p");
 
-                    follower.setMaxPower(0.175); //slow down for pickup
+                    follower.setMaxPower(0.2); //slow down for pickup
 
                     setTrayPosition(TRAY_POS_1_INTAKE);
                     follower.followPath(paths.Path4, true);
@@ -302,11 +302,14 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Wait for Path6 to pick up artifact, then start Path7");
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3.0) {
                     telemetry.addLine("Case " + pathState + ": Moving to shooting position");
+                    follower.setMaxPower(0.8);// resume normal speed
 
-                    follower.setMaxPower(0.5); // move slowly to prevent artifacts from falling out of tray
                     follower.followPath(paths.Path7, true);
-                    setTrayPosition(TRAY_POS_1_SCORE);
-                    //rubberBands.setPower(0);
+                    setTrayPosition(TRAY_POS_2_SCORE);
+                    rubberBands.setPower(0);
+                    intakeRoller.setPower(0);
+                    topIntake.setPower(0);
+                    shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP);
                     setPathState(pathState + 1);
                 }
                 break;
@@ -315,7 +318,8 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Wait for Path7 to get into position, then start Path8");
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
                     telemetry.addLine("Case " + pathState + ": Shoot the pattern");
-                    shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP * .96875); // 31/32 power
+
+                    shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP);
                     setPathState(pathState + 1);
                 }
                 break;

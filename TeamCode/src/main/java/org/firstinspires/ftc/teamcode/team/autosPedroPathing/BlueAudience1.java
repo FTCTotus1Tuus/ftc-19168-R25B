@@ -119,7 +119,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
             IntakePosition = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(56.000, 18.000), new Pose(42.000, 35.750))
+                            new BezierLine(new Pose(56.000, 18.000), new Pose(44.500, 35.750))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(112), Math.toRadians(180))
                     .build();
@@ -127,7 +127,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
             Intake1 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(42.000, 35.750), new Pose(34.000, 35.750))
+                            new BezierLine(new Pose(44.500, 35.750), new Pose(36.500, 35.750))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -135,7 +135,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
             Intake2 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(34.000, 35.750), new Pose(29.000, 35.750))
+                            new BezierLine(new Pose(36.500, 35.750), new Pose(31.500, 35.750))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -143,7 +143,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
             Intake3 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(29.000, 35.750), new Pose(24.000, 35.750))
+                            new BezierLine(new Pose(31.500, 35.750), new Pose(24.000, 35.750))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -170,7 +170,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
         }
     }
 
-
+//Todo: fix angle for shooting
 //67
 
     public int autonomousPathUpdate() {
@@ -226,7 +226,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP_FAR);
 
-                if (pathTimer.getElapsedTimeSeconds() > 1) {
+                if (pathTimer.getElapsedTimeSeconds() > 3) { // increased time to allow for motor to spin up
                     setPathState(pathState + 1);
                 }
                 break;
@@ -239,7 +239,9 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
 
-                    //rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     setTrayPosition(TRAY_POS_2_INTAKE);
                     follower.followPath(paths.IntakePosition, true);
                     setPathState(pathState + 1);
@@ -250,9 +252,10 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //when in position, go to intake position 1
                 telemetry.addLine("Case " + pathState + ": Going to intake position 1");
 
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 1.5) {
-
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
                     follower.setMaxPower(0.175); //slow down for pickup
+
+                    setTrayPosition(TRAY_POS_2_INTAKE);
                     follower.followPath(paths.Intake1, true);
                     setPathState(pathState + 1);
                 }
@@ -262,7 +265,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //when ball 1 intaken, move to intake position 2
                 telemetry.addLine("Case " + pathState + ": Intaking ball 1g");
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 2.3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
 
                     setTrayPosition(TRAY_POS_3_INTAKE);
                     follower.followPath(paths.Intake2, true);
@@ -273,7 +276,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
             case 7:
                 //move to intake position 3
                 telemetry.addLine("Case " + pathState + ": Intaking ball 3p");
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 2.3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
 
                     setTrayPosition(TRAY_POS_1_INTAKE);
                     follower.followPath(paths.Intake3, true);
@@ -285,9 +288,10 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //once ball 3p intaken, move to shooting position 2
                 telemetry.addLine("Case " + pathState + ": Move to shoot position 2");
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 2.3) {
-
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3.5) { // increased time to allow for motor to spin up
                     follower.setMaxPower(.8); //reset to normal speed
+                    setTrayPosition(TRAY_POS_2_SCORE);
+
                     shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP_FAR);
                     follower.followPath(paths.ShootingPosition2, true);
                     setPathState(pathState + 1);
@@ -312,7 +316,9 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 shootPatternFSM.updateShootPattern(getRuntime());
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
-                    //rubberBands.setPower(0); //stop intake
+                    rubberBands.setPower(0); //stop intake
+                    intakeRoller.setPower(0);
+                    topIntake.setPower(0);
                     follower.followPath(paths.Parking, true);
                     setPathState(-1);
                 }

@@ -24,7 +24,7 @@ public class ShootArtifactFSM {
     // Timings (seconds)
     public static double ELEVATOR_UP_DELAY = .700;    // elevator up delay
     public static double ELEVATOR_DOWN_DELAY = .400;   //elevator down delay
-    public static double SPINUP_DELAY = .800;    // shotgun running before elevator up
+    public static double SPINUP_DELAY = .900;    // shotgun running before elevator up
 
     public ShootArtifactFSM(DarienOpModeFSM opMode) {
         this.opMode = opMode;
