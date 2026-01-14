@@ -86,10 +86,14 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double TURRET_ROTATION_INCREMENT = 0.001;
     public static double TURRET_ROTATION_MAX_LEFT = 0.63;
     public static double TURRET_ROTATION_MAX_RIGHT = 0.35;
+    public static double TURRET_POSITION_CENTER = 0.5;
     public static double EJECTION_P=15;
     public static double EJECTION_I=1;
     public static double EJECTION_D=0;
     public static double EJECTION_F=0;
+
+    public final int APRILTAG_ID_GOAL_BLUE = 20;
+    public final int APRILTAG_ID_GOAL_RED = 24;
 
 
     // DYNAMIC VARIABLES
@@ -122,9 +126,9 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
         topIntake = hardwareMap.get(CRServo.class, "topIntake");
         turretServo = hardwareMap.get(Servo.class, "turretServo");
-        turretServo.setPosition(0.5); // set to center position
-        //turretServo.scaleRange(0.3, 0.63); // limit the servo range to the turret rotation range
-        currentTurretPosition = 0.5;
+        turretServo.setPosition(TURRET_POSITION_CENTER); // set to center position
+        currentTurretPosition = TURRET_POSITION_CENTER;
+        //turretServo.scaleRange(TURRET_ROTATION_MAX_RIGHT, TURRET_ROTATION_MAX_LEFT); // limit the servo range to the turret rotation range
 
         // INITIALIZE SENSORS
         intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
