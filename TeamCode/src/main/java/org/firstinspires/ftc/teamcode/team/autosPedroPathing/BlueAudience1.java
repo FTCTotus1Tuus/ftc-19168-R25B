@@ -113,7 +113,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 9.000), new Pose(56.000, 18.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(112))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(117))
                     .build();
 
             IntakePosition = follower
@@ -121,7 +121,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 18.000), new Pose(44.500, 35.750))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(112), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(117), Math.toRadians(180))
                     .build();
 
             Intake1 = follower
@@ -157,7 +157,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                                     new Pose(56.000, 18.000)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113.5))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(117))
                     .build();
 
             Parking = follower
@@ -165,7 +165,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 18.000), new Pose(56.000, 29.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(113.5), Math.toRadians(90))
+                    .setLinearHeadingInterpolation(Math.toRadians(117), Math.toRadians(90))
                     .build();
         }
     }
@@ -186,7 +186,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 // Set the initial tray position
                 setTrayPosition(TRAY_POS_1_SCORE);
                 tagFSM.start(getRuntime());
-                follower.setMaxPower(.8); //normal speed
+                follower.setMaxPower(.9); //normal speed
                 if (pathTimer.getElapsedTimeSeconds() > 1.0) {
 
                     telemetry.addLine("Case " + pathState + ": exiting");
@@ -201,7 +201,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 tagFSM.update(getRuntime(), true, telemetry);
 
-                if ((tagFSM.isDone()) || pathTimer.getElapsedTimeSeconds() > 2.5) {
+                if ((tagFSM.isDone()) || pathTimer.getElapsedTimeSeconds() > 2) {
                     aprilTagDetections = tagFSM.getDetections();
                     aprilTagDetections.removeIf(tag -> tag.id == 20 || tag.id == 24);
                     follower.followPath(paths.ShootingPosition);
@@ -214,7 +214,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //move to shooting position 1
                 telemetry.addLine("Case " + pathState + ": wait for Path 1...");
 
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.5) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
 
                     setPathState(pathState + 1);
                 }
@@ -253,7 +253,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Going to intake position 1");
 
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
-                    follower.setMaxPower(0.175); //slow down for pickup
+                    follower.setMaxPower(0.2); //slow down for pickup
 
                     setTrayPosition(TRAY_POS_2_INTAKE);
                     follower.followPath(paths.Intake1, true);
@@ -289,7 +289,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Move to shoot position 2");
 
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3.5) { // increased time to allow for motor to spin up
-                    follower.setMaxPower(.8); //reset to normal speed
+                    follower.setMaxPower(.9); //reset to normal speed
                     setTrayPosition(TRAY_POS_2_SCORE);
 
                     shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP_FAR);
@@ -320,6 +320,13 @@ public class BlueAudience1 extends DarienOpModeFSM {
                     intakeRoller.setPower(0);
                     topIntake.setPower(0);
                     follower.followPath(paths.Parking, true);
+                    setPathState(pathState + 1);
+                }
+                break;
+
+            case 11:
+                // finish the move to parking
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 3.0) {
                     setPathState(-1);
                 }
                 break;

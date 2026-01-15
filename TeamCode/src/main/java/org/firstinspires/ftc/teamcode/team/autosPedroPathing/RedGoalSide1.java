@@ -144,7 +144,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             Path5 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(104, 83.567), new Pose(109, 83.567))
+                            new BezierLine(new Pose(104, 83.567), new Pose(108.5, 83.567))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -152,7 +152,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             Path6 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(109, 83.567), new Pose(116, 83.567))
+                            new BezierLine(new Pose(108.5, 83.567), new Pose(115, 83.567))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -161,7 +161,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(116, 83.567),
+                                    new Pose(115, 83.567),
                                     new Pose(99.436, 103.926),
                                     new Pose(90.443, 117.383)
                             )
@@ -199,7 +199,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
 
                 // Set the initial tray position
                 setTrayPosition(TRAY_POS_1_SCORE);
-                follower.setMaxPower(0.8); // move slowly to prevent artifacts from falling out of tray
+                follower.setMaxPower(0.9);
                 follower.followPath(paths.Path1);
                 setPathState(pathState + 1);
                 break;

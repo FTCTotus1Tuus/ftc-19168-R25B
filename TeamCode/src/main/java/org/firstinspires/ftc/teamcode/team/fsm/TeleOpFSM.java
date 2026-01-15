@@ -27,6 +27,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // TUNING CONSTANTS
     public static double INTAKE_TIME = 1;
     public static double SHOT_TIMEOUT = 2.0; // seconds
+    public static double SHOT_GUN_POWER_UP_FAR_RPM = 3250; // tuned to 6000 rpm motor
 
     // VARIABLES
     private double shotStartTime;

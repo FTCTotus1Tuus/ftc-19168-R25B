@@ -207,7 +207,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
 
                 // Set the initial tray position
                 setTrayPosition(TRAY_POS_1_SCORE);
-                follower.setMaxPower(0.8); // move slowly to prevent artifacts from falling out of tray
+                follower.setMaxPower(0.9);
                 follower.followPath(paths.Path1);
                 setPathState(pathState + 1);
                 break;
