@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.team.fsm.AprilTagStorageFSM;
 import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 
 /**
@@ -206,6 +207,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Start Path1");
 
                 // Set the initial tray position
+                AprilTagStorageFSM.reset();
                 setTrayPosition(TRAY_POS_1_SCORE);
                 follower.setMaxPower(0.9);
                 follower.followPath(paths.Path1);
@@ -232,6 +234,15 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
 
                 if ((tagFSM.isDone()) || pathTimer.getElapsedTimeSeconds() > 2.67) {
                     aprilTagDetections = tagFSM.getDetections();
+
+                    // Persist the scan result so TeleOp can access it.
+                    // We only store motif tags (21/22/23). Non-motif tags will be ignored/reset.
+                    if (aprilTagDetections != null && !aprilTagDetections.isEmpty()) {
+                        AprilTagStorageFSM.saveMotifTagId(aprilTagDetections.get(0).id);
+                    } else {
+                        // No tag found; keep storage cleared.
+                        AprilTagStorageFSM.reset();
+                    }
 
                     telemetry.addLine("Case " + pathState + ": exiting");
                     follower.followPath(paths.Path2);
@@ -385,3 +396,4 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
         pathTimer.resetTimer();
     }
 }
+

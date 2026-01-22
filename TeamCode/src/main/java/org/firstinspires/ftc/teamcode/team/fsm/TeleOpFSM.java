@@ -15,6 +15,9 @@ import com.bylazar.telemetry.TelemetryManager;
 //import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.Range;
 
+// Add storage import for Auto->TeleOp persistence
+import org.firstinspires.ftc.teamcode.team.fsm.AprilTagStorageFSM;
+
 @TeleOp(name = "TeleopFSM", group = "DriverControl")
 @Config
 @Configurable
@@ -373,10 +376,13 @@ public class TeleOpFSM extends DarienOpModeFSM {
                  */
             } else {
                 shotgunFSM.toOff();
+                // ejectionMotor.setPower(0);
             }
             telemetry.addData("Actual ShotGun RPM", ejectionMotor.getVelocity() * 60 / TICKS_PER_ROTATION); // convert from ticks per second to RPM
             telemetry.addData("ejectionMotor power", ejectionMotor.getPower());
             telemetry.addData("Actual ShotGun TPS", ejectionMotor.getVelocity()); // convert from ticks per second to RPM
+
+            telemetry.addData("ejectionMotor duty", ejectionMotor.getPIDFCoefficients(com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER));
 
             /*
             telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",
