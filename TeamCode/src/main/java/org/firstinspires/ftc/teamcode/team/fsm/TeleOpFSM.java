@@ -13,10 +13,12 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 //import com.qualcomm.robotcore.hardware.DcMotorEx;
 //import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.util.Range;
+//import com.qualcomm.robotcore.util.Range;
 
-// Add storage import for Auto->TeleOp persistence
-import org.firstinspires.ftc.teamcode.team.fsm.AprilTagStorageFSM;
+// Use storage + macro
+// (same package; no import needed)
+
+//import org.firstinspires.ftc.teamcode.team.fsm.AprilTagStorageFSM;
 
 @TeleOp(name = "TeleopFSM", group = "DriverControl")
 @Config
@@ -41,7 +43,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // Track previous bumper state for edge detection
     private boolean prevRightBumper1 = false;
     private boolean prevBackButton = false;
+    private boolean prevLeftBumper2 = false; //FOR SAVING MOTIF MACRO
     private ShotgunPowerLevel shotgunPowerLatch = ShotgunPowerLevel.LOW;
+    private boolean motifMacroRunning = false;//FOR SAVING MOTIF MACRO
 
     // AUTOMATIC TURRET CONTROLS BASED ON CAMERA APRILTAG DETECTION
     AprilTagDetection detection;
@@ -264,6 +268,24 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 telemetry.addData("shotStarted", shotStarted);
                 telemetry.addData("tripleShotStarted", tripleShotStarted);
 
+                // Keep tray classification fresh (needed for motif macro).
+                trayFSM.update();
+
+                // Trigger motif macro on gamepad2 left bumper (edge-triggered)
+                boolean leftBumper2 = gamepad2.left_bumper;
+                if (leftBumper2 && !prevLeftBumper2) {
+                    if (!motifMacroRunning) {
+                        // Start macro (uses stored motifTagId from Auto)
+                        shootMotifFromStorageFSM.start(getRuntime(), SHOT_GUN_POWER_UP);
+                        motifMacroRunning = shootMotifFromStorageFSM.isRunning();
+                    } else {
+                        // Toggle off
+                        shootMotifFromStorageFSM.stop();
+                        motifMacroRunning = false;
+                    }
+                }
+                prevLeftBumper2 = leftBumper2;
+
             } //manual controls
             else {
                 // -----------------
@@ -287,6 +309,20 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     if (shootTripleFSM.isDone() || getRuntime() - tripleShotStartTime >= 10) {
                         tripleShotStarted = false;
                     }
+                }
+
+                // If motif macro is running, update it and skip conflicting shooter/tray controls.
+                if (motifMacroRunning) {
+                    shootMotifFromStorageFSM.update(getRuntime(), true);
+                    motifMacroRunning = shootMotifFromStorageFSM.isRunning();
+
+                    telemetry.addData("MotifMacro", "RUNNING");
+                    telemetry.addData("SavedMotifTag", AprilTagStorageFSM.motifTagId);
+                    telemetry.update();
+                    continue;
+                } else {
+                    telemetry.addData("MotifMacro", "OFF");
+                    telemetry.addData("SavedMotifTag", AprilTagStorageFSM.motifTagId);
                 }
 
                 /*

@@ -36,6 +36,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public ShootTripleFSM shootTripleFSM;
     public ShotgunFSM shotgunFSM;
     public TurretFSM turretFSM;
+    public ShootMotifFromStorageFSM shootMotifFromStorageFSM;
 
     // AprilTag
     public ArrayList<AprilTagDetection> aprilTagDetections;
@@ -152,6 +153,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         shootTripleFSM = new ShootTripleFSM(this);
         shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
         turretFSM = new TurretFSM(this);
+        shootMotifFromStorageFSM = new ShootMotifFromStorageFSM(this, trayFSM);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position
