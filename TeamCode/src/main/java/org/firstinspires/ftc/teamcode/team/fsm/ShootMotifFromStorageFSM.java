@@ -22,7 +22,7 @@ public class ShootMotifFromStorageFSM {
     }
 
     /** Motif colors in order for tags 21/22/23.
-     * Using the common FTC_CENTERSTAGE convention:
+     * Using the common FTC_DECODE convention:
      *  - 21 = GPP
      *  - 22 = PGP
      *  - 23 = PPG
@@ -104,14 +104,20 @@ public class ShootMotifFromStorageFSM {
             case MOVE_TRAY: {
                 selectedSlotIndex = findSlotWithColor(expected);
 
+                // Fallback: if the expected color isn't present, shoot any filled slot instead.
+                if (selectedSlotIndex < 0) {
+                    selectedSlotIndex = findAnyFilledSlot();
+                }
+
                 if (telemetryEnabled) {
                     opMode.telemetry.addData("MotifStep", "%d/3", stepIndex + 1);
                     opMode.telemetry.addData("ExpectedColor", expected);
                     opMode.telemetry.addData("SelectedSlot", selectedSlotIndex);
+                    opMode.telemetry.addData("FallbackMode", (findSlotWithColor(expected) < 0) ? "ANY" : "MATCH");
                 }
 
                 if (selectedSlotIndex < 0) {
-                    // Expected color not present (or unknown). Skip this step to avoid wrong color.
+                    // Nothing to shoot.
                     stepIndex++;
                     stateStartTime = currentTimeSeconds;
                     // stay in MOVE_TRAY for next step
@@ -176,6 +182,14 @@ public class ShootMotifFromStorageFSM {
         // Prefer an exact match.
         for (int i = 0; i < 3; i++) {
             if (trayFSM.getSlot(i) == wanted) return i;
+        }
+        return -1;
+    }
+
+    private int findAnyFilledSlot() {
+        for (int i = 0; i < 3; i++) {
+            TrayFSM.SlotState s = trayFSM.getSlot(i);
+            if (s == TrayFSM.SlotState.GREEN || s == TrayFSM.SlotState.PURPLE) return i;
         }
         return -1;
     }

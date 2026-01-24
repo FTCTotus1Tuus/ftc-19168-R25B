@@ -47,6 +47,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
     private ShotgunPowerLevel shotgunPowerLatch = ShotgunPowerLevel.LOW;
     private boolean motifMacroRunning = false;//FOR SAVING MOTIF MACRO
 
+    // Manual motif override (START as modifier): edge-detection flags
+    private boolean prevManualMotifLeft = false;
+    private boolean prevManualMotifUp = false;
+    private boolean prevManualMotifRight = false;
+    private boolean prevManualMotifDown = false;
+
     // AUTOMATIC TURRET CONTROLS BASED ON CAMERA APRILTAG DETECTION
     AprilTagDetection detection;
     double yaw; // Stores detection.ftcPose.yaw
@@ -79,6 +85,19 @@ public class TeleOpFSM extends DarienOpModeFSM {
         return Math.max(min, Math.min(max, v));
     }
 
+    private String getSavedMotifLabel() {
+        switch (AprilTagStorageFSM.motifTagId) {
+            case 21:
+                return "GPP";
+            case 22:
+                return "PGP";
+            case 23:
+                return "PPG";
+            default:
+                return "(none)";
+        }
+    }
+
     @Override
     public void initControls() {
         super.initControls();
@@ -96,9 +115,19 @@ public class TeleOpFSM extends DarienOpModeFSM {
         tp = new TelemetryPacket();
         dash = FtcDashboard.getInstance();
 
+        // --- INIT TELEMETRY: show what Auto saved before the match starts ---
+        // Show what Auto saved during init, but don't allow changing values here.
+        while (!isStarted() && !isStopRequested()) {
+            telemetry.addData("Motif Saved", AprilTagStorageFSM.hasValidScan() ? "YES" : "NO");
+            telemetry.addData("Motif Tag", AprilTagStorageFSM.motifTagId);
+            telemetry.addData("Motif Pattern", getSavedMotifLabel());
+            telemetry.addLine("Manual motif set: hold START + dpad (L=GPP, U=PGP, R=PPG, D=clear) AFTER start.");
+            idle();
+        }
 
         waitForStart();
         if (isStopRequested()) return;
+
         //Start
         follower.startTeleopDrive(true);
         follower.update();
@@ -114,6 +143,28 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
 
         while (this.opModeIsActive() && !isStopRequested()) {
+
+            // --- Manual motif override (after start) ---
+            // Hold START then tap dpad:
+            //  - START + dpad_left  => 21 (GPP)
+            //  - START + dpad_up    => 22 (PGP)
+            //  - START + dpad_right => 23 (PPG)
+            //  - START + dpad_down  => clear
+            boolean motifModifier = gamepad2.start;
+            boolean setGpp = motifModifier && gamepad2.dpad_left;
+            boolean setPgp = motifModifier && gamepad2.dpad_up;
+            boolean setPpg = motifModifier && gamepad2.dpad_right;
+            boolean clear = motifModifier && gamepad2.dpad_down;
+
+            if (setGpp && !prevManualMotifLeft) AprilTagStorageFSM.saveMotifTagId(21);
+            if (setPgp && !prevManualMotifUp) AprilTagStorageFSM.saveMotifTagId(22);
+            if (setPpg && !prevManualMotifRight) AprilTagStorageFSM.saveMotifTagId(23);
+            if (clear && !prevManualMotifDown) AprilTagStorageFSM.reset();
+
+            prevManualMotifLeft = setGpp;
+            prevManualMotifUp = setPgp;
+            prevManualMotifRight = setPpg;
+            prevManualMotifDown = clear;
 
             follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
             follower.update();
@@ -223,11 +274,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 telemetry.addData("targetServoPos", targetServoPos);
 
                 //CONTROL: ELEVATOR
-                if (gamepad2.left_bumper) {
+               /* if (gamepad2.left_bumper) {
                     Elevator.setPosition(ELEVATOR_POS_UP);
                 } else {
                     Elevator.setPosition(ELEVATOR_POS_DOWN);
                 }
+                */
                 // CONTROL: ROTATING TRAY USING FSM
                 if (gamepad2.dpad_left) {
                     setTrayPosition(TRAY_POS_1_SCORE);
@@ -271,12 +323,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // Keep tray classification fresh (needed for motif macro).
                 trayFSM.update();
 
+                // CONTROL: SAVE MOTIF MACRO
                 // Trigger motif macro on gamepad2 left bumper (edge-triggered)
-                boolean leftBumper2 = gamepad2.left_bumper;
-                if (leftBumper2 && !prevLeftBumper2) {
+                if (gamepad2.left_bumper && !prevLeftBumper2) {
                     if (!motifMacroRunning) {
                         // Start macro (uses stored motifTagId from Auto)
-                        shootMotifFromStorageFSM.start(getRuntime(), SHOT_GUN_POWER_UP);
+                        shootMotifFromStorageFSM.start(getRuntime(), shotgunPowerLatch == ShotgunPowerLevel.LOW ? SHOT_GUN_POWER_UP : SHOT_GUN_POWER_UP_FAR);
                         motifMacroRunning = shootMotifFromStorageFSM.isRunning();
                     } else {
                         // Toggle off
@@ -284,7 +336,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
                         motifMacroRunning = false;
                     }
                 }
-                prevLeftBumper2 = leftBumper2;
 
             } //manual controls
             else {
@@ -316,11 +367,17 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     shootMotifFromStorageFSM.update(getRuntime(), true);
                     motifMacroRunning = shootMotifFromStorageFSM.isRunning();
 
+                    telemetry.addData("Motif Saved From Auto", AprilTagStorageFSM.hasValidScan() ? "YES" : "NO");
+                    telemetry.addData("Motif Tag", AprilTagStorageFSM.motifTagId);
+                    telemetry.addData("Motif Pattern", getSavedMotifLabel());
                     telemetry.addData("MotifMacro", "RUNNING");
                     telemetry.addData("SavedMotifTag", AprilTagStorageFSM.motifTagId);
                     telemetry.update();
                     continue;
                 } else {
+                    telemetry.addData("Motif Saved From Auto", AprilTagStorageFSM.hasValidScan() ? "YES" : "NO");
+                    telemetry.addData("Motif Tag", AprilTagStorageFSM.motifTagId);
+                    telemetry.addData("Motif Pattern", getSavedMotifLabel());
                     telemetry.addData("MotifMacro", "OFF");
                     telemetry.addData("SavedMotifTag", AprilTagStorageFSM.motifTagId);
                 }
@@ -432,3 +489,4 @@ public class TeleOpFSM extends DarienOpModeFSM {
         } //while opModeIsActive
     } //runOpMode
 } //TeleOpFSM class
+
