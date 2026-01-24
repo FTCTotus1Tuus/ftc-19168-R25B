@@ -28,6 +28,8 @@ public class TrayFSM {
     private final Servo trayServo;
     private final DcMotorEx rubberBands;      // Motor for rubber band intake
     private final CRServo topIntake;       // CRServo for top intake
+    private final CRServo rightIntake;
+    private final CRServo leftIntake;
     private final NormalizedColorSensor colorSensor;
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
@@ -46,7 +48,7 @@ public class TrayFSM {
     public static double SETTLE_TIME = 0.3;    // how long to wait after moving servo before checking
     // How long to ignore sensor input after commanding the servo to move (seconds).
     // Set this slightly longer than the servo travel time to avoid seeing balls that pass under the sensor during rotation.
-    public static double SERVO_IGNORE_DURATION = 0.7;
+    public static double SERVO_IGNORE_DURATION = 0.3;
 
     // Whether to wait indefinitely for an artifact (true) or use timeout to skip (false)
     public static boolean WAIT_FOR_ARTIFACT = true;
@@ -75,7 +77,7 @@ public class TrayFSM {
 
     // After a ball is detected and the intake motors stop, wait this many seconds for the ball to settle
     // into the tray slot before rotating to the next slot. Tunable via Dashboard.
-    public static double BALL_SETTLE_TIME = 0.75;
+    public static double BALL_SETTLE_TIME = 0.1;
 
     // Sliding-window detection
     private final int windowSize = 5; // number of recent samples to consider
@@ -93,11 +95,13 @@ public class TrayFSM {
     private double servoIgnoreUntil = 0.0;
 
     // Constructor: initialize final hardware fields and detection window
-    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, DcMotorEx rubberBands, CRServo topIntake, NormalizedColorSensor colorSensor, Telemetry telemetry) {
+    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, DcMotorEx rubberBands, CRServo topIntake, CRServo rightIntake, CRServo leftIntake, NormalizedColorSensor colorSensor, Telemetry telemetry) {
         this.opMode = opMode;
         this.trayServo = trayServo;
         this.rubberBands = rubberBands;
         this.topIntake = topIntake;
+        this.rightIntake = rightIntake;
+        this.leftIntake = leftIntake;
         this.colorSensor = colorSensor;
         this.telemetry = telemetry;
 
@@ -156,6 +160,8 @@ public class TrayFSM {
                     // Start intake to try to capture a ball: run both rubber bands and the roller
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                    rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                    leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     // reset detection window for this intake slot
                     Arrays.fill(detectionWindow, SlotState.EMPTY);
                      windowIndex = 0;
@@ -221,6 +227,8 @@ public class TrayFSM {
                     // ball can settle into the slot.
                     rubberBands.setPower(0.0);
                     topIntake.setPower(0.0);
+                    leftIntake.setPower(0.0);
+                    rightIntake.setPower(0.0);
                     slots[currentSlotIndex] = accepted;
                     telemetry.addData("Slot " + (currentSlotIndex + 1), slots[currentSlotIndex].toString());
                     // Determine next empty slot index. We will move there after BALL_SETTLE_TIME.
@@ -239,6 +247,8 @@ public class TrayFSM {
                      // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
                      rubberBands.setPower(0.0);
                      topIntake.setPower(0.0);
+                     leftIntake.setPower(0.0);
+                     rightIntake.setPower(0.0);
                      slots[currentSlotIndex] = SlotState.EMPTY;
                      int next = findNextEmptySlot(currentSlotIndex + 1);
                      if (next < 0) {
@@ -272,6 +282,8 @@ public class TrayFSM {
                 // leave motors off
                 rubberBands.setPower(0.0);
                 topIntake.setPower(0.0);
+                rightIntake.setPower(0.0);
+                leftIntake.setPower(0.0);
                 break;
         }
 

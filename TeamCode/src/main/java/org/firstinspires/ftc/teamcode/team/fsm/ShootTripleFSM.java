@@ -75,9 +75,9 @@ public class ShootTripleFSM {
                 }
                 break;
             case ROTATE_TRAY: // Move tray
-                double targetPos = (motif[nbMotifIndex] == 1) ? DarienOpModeFSM.TRAY_POS_1_SCORE :
+                double targetPos = (motif[nbMotifIndex] == 1) ? DarienOpModeFSM.TRAY_POS_3_SCORE :
                         (motif[nbMotifIndex] == 2) ? DarienOpModeFSM.TRAY_POS_2_SCORE :
-                                DarienOpModeFSM.TRAY_POS_3_SCORE;
+                                DarienOpModeFSM.TRAY_POS_1_SCORE;
                 //opMode.servoIncremental(opMode.TrayServo, targetPos, opMode.currentTrayPosition, 1, 4);
                 //opMode.currentTrayPosition = targetPos;
                 opMode.setTrayPosition(targetPos);
@@ -115,14 +115,16 @@ public class ShootTripleFSM {
     public boolean isDone() {
         return !nbShootingActive;
     }
-/*
+
+    /*
     public void toggle() {
         if (()) {
             //stop();
         } else {
-            startShootTriple();
+            startShootTriple(opMode.getRuntime(), );
         }
     }
- */
+
+     */
 
 }

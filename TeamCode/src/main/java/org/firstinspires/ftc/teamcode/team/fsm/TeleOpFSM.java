@@ -37,6 +37,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
     // Track previous bumper state for edge detection
     private boolean prevRightBumper1 = false;
+    //private boolean prevRightBumper2 = false;
     private boolean prevBackButton = false;
     private ShotgunPowerLevel shotgunPowerLatch = ShotgunPowerLevel.LOW;
 
@@ -119,12 +120,18 @@ public class TeleOpFSM extends DarienOpModeFSM {
             if (gamepad1.y) {
                 rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                 topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.a) {
                 rubberBands.setPower(-INTAKE_RUBBER_BANDS_POWER);
                 topIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.x) {
                 rubberBands.setPower(0);
                 topIntake.setPower(0);
+                leftIntake.setPower(0);
+                rightIntake.setPower(0);
             }
 
             // Toggle auto-intake on right bumper press (edge triggered)
@@ -246,6 +253,16 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 }
 
                 // CONTROL: START TRIPLE SHOT MACRO USING FSM
+                // Toggle auto-intake on right bumper press (edge triggered)
+                /*
+                if (gamepad1.right_bumper && !prevRightBumper1) {
+                    // toggle the TrayFSM instance (from DarienOpModeFSM)
+                    ShootTripleFSM.toggle();
+                }
+                prevRightBumper2 = gamepad2.right_bumper;
+
+                 */
+
 
                 // Edge-triggered start: press right bumper to start triple shoot
                 else if (gamepad2.right_bumper && gamepad2.right_stick_y < -0.05) {

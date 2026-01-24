@@ -48,7 +48,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     // HARDWARE DEVICES
     public Servo TrayServo, Elevator, turretServo;
-    public CRServo topIntake;
+    public CRServo topIntake, rightIntake, leftIntake;
     public DcMotorEx ejectionMotor, rubberBands;
 
     public NormalizedColorSensor intakeColorSensor;
@@ -125,6 +125,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         Elevator = hardwareMap.get(Servo.class, "Elevator");
         topIntake = hardwareMap.get(CRServo.class, "topIntake");
         turretServo = hardwareMap.get(Servo.class, "turretServo");
+        rightIntake = hardwareMap.get(CRServo.class, "rightIntake");
+        leftIntake = hardwareMap.get(CRServo.class, "leftIntake");
         turretServo.setPosition(TURRET_POSITION_CENTER); // set to center position
         currentTurretPosition = TURRET_POSITION_CENTER;
         //turretServo.scaleRange(TURRET_ROTATION_MAX_RIGHT, TURRET_ROTATION_MAX_LEFT); // limit the servo range to the turret rotation range
@@ -148,7 +150,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
-        trayFSM = new TrayFSM(this, TrayServo, rubberBands, topIntake, intakeColorSensor, telemetry);
+        trayFSM = new TrayFSM(this, TrayServo, rubberBands, topIntake, rightIntake, leftIntake, intakeColorSensor, telemetry);
         shootTripleFSM = new ShootTripleFSM(this);
         shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
         turretFSM = new TurretFSM(this);
