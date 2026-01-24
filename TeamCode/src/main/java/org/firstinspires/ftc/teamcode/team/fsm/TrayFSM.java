@@ -160,8 +160,8 @@ public class TrayFSM {
                     // Start intake to try to capture a ball: run both rubber bands and the roller
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
-                    leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                    //rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                    //leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     // reset detection window for this intake slot
                     Arrays.fill(detectionWindow, SlotState.EMPTY);
                      windowIndex = 0;
@@ -227,8 +227,8 @@ public class TrayFSM {
                     // ball can settle into the slot.
                     rubberBands.setPower(0.0);
                     topIntake.setPower(0.0);
-                    leftIntake.setPower(0.0);
-                    rightIntake.setPower(0.0);
+                    //leftIntake.setPower(0.0);
+                    //rightIntake.setPower(0.0);
                     slots[currentSlotIndex] = accepted;
                     telemetry.addData("Slot " + (currentSlotIndex + 1), slots[currentSlotIndex].toString());
                     // Determine next empty slot index. We will move there after BALL_SETTLE_TIME.
@@ -247,8 +247,8 @@ public class TrayFSM {
                      // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
                      rubberBands.setPower(0.0);
                      topIntake.setPower(0.0);
-                     leftIntake.setPower(0.0);
-                     rightIntake.setPower(0.0);
+                    //leftIntake.setPower(0.0);
+                    //rightIntake.setPower(0.0);
                      slots[currentSlotIndex] = SlotState.EMPTY;
                      int next = findNextEmptySlot(currentSlotIndex + 1);
                      if (next < 0) {
@@ -282,8 +282,8 @@ public class TrayFSM {
                 // leave motors off
                 rubberBands.setPower(0.0);
                 topIntake.setPower(0.0);
-                rightIntake.setPower(0.0);
-                leftIntake.setPower(0.0);
+                //rightIntake.setPower(0.0);
+                //leftIntake.setPower(0.0);
                 break;
         }
 

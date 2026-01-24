@@ -109,8 +109,13 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
         while (this.opModeIsActive() && !isStopRequested()) {
 
+            // -----------------
+            // ALWAYS RUN
+            // -----------------
             follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
             follower.update();
+            leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+            rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
 
             // -----------------
             // GAMEPAD1 CONTROLS
@@ -118,20 +123,22 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
             //RubberBands + topIntake CONTROLS:
             if (gamepad1.y) {
+                // Intake mode
                 rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                 topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                //leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                //rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.a) {
+                // Eject mode
                 rubberBands.setPower(-INTAKE_RUBBER_BANDS_POWER);
                 topIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
-                leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                //leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                //rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.x) {
                 rubberBands.setPower(0);
                 topIntake.setPower(0);
-                leftIntake.setPower(0);
-                rightIntake.setPower(0);
+                //leftIntake.setPower(0);
+                //rightIntake.setPower(0);
             }
 
             // Toggle auto-intake on right bumper press (edge triggered)
