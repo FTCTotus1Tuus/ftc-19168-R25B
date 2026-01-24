@@ -240,7 +240,6 @@ public class RedAudience1 extends DarienOpModeFSM {
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
 
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     setTrayPosition(TRAY_POS_2_INTAKE);
                     follower.followPath(paths.IntakePosition, true);
@@ -317,7 +316,6 @@ public class RedAudience1 extends DarienOpModeFSM {
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
                     rubberBands.setPower(0); //stop intake
-                    intakeRoller.setPower(0);
                     topIntake.setPower(0);
                     follower.followPath(paths.Parking, true);
                     setPathState(pathState + 1);

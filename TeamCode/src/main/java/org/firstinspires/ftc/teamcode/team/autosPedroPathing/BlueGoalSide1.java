@@ -264,7 +264,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
 
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
 
                     // now continue with next path
@@ -292,7 +291,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 2p");
 
                     rubberBands.setPower(0);
-                    intakeRoller.setPower(0);
                     topIntake.setPower(0);
                     setTrayPosition(TRAY_POS_3_INTAKE);
 
@@ -304,7 +302,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 //wait for tray to rotate before next pickup
                 if (pathTimer.getElapsedTimeSeconds() > INTAKE_RUBBER_BANDS_DELAY) {
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     follower.followPath(paths.Path5, true);
                     setPathState(8);
@@ -316,7 +313,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 2.3) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 3g");
                     rubberBands.setPower(0);
-                    intakeRoller.setPower(0);
+
                     topIntake.setPower(0);
                     setTrayPosition(TRAY_POS_2_INTAKE);
                     setPathState(89);
@@ -327,7 +324,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 //wait for tray to rotate before next pickup
                 if (pathTimer.getElapsedTimeSeconds() > INTAKE_RUBBER_BANDS_DELAY) {
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     follower.followPath(paths.Path6, true);
                     setPathState(9);
@@ -344,7 +340,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     follower.followPath(paths.Path7, true);
                     setTrayPosition(TRAY_POS_2_SCORE);
                     rubberBands.setPower(0);
-                    intakeRoller.setPower(0);
                     topIntake.setPower(0);
                     shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP);
                     setPathState(pathState + 1);
