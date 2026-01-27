@@ -97,7 +97,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
         waitForStart();
         if (isStopRequested()) return;
         //Start
-        follower.startTeleopDrive(true);
+        follower.startTeleopDrive(false);
         follower.update();
 
         //PIDFCoefficients pidfOrig = ejectionMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER);

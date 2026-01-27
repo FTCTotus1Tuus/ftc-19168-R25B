@@ -38,7 +38,7 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(0.8)
+            .maxPower(1.0)
             .rightFrontMotorName("omniMotor1")
             .rightRearMotorName("omniMotor3")
             .leftRearMotorName("omniMotor2")
