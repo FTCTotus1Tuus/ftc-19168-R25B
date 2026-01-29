@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.team.DarienOpMode;
 
 import java.util.Arrays;
 
@@ -47,10 +46,10 @@ public class TrayFSM {
 
     // Timing/timeouts (in seconds)
     public static double INTAKE_TIMEOUT = 2.0; // how long to run intake while waiting for ball (used only if waitForArtifact==false)
-    public static double SETTLE_TIME = 0.3;    // how long to wait after moving servo before checking
+    public static double TRAY_DELAY = 0.5;    // how long to wait after moving servo before checking
     // How long to ignore sensor input after commanding the servo to move (seconds).
     // Set this slightly longer than the servo travel time to avoid seeing balls that pass under the sensor during rotation.
-    public static double SERVO_IGNORE_DURATION = 0.3;
+    public static double SERVO_IGNORE_DURATION = TRAY_DELAY;
 
     // Whether to wait indefinitely for an artifact (true) or use timeout to skip (false)
     public static boolean WAIT_FOR_ARTIFACT = true;
@@ -61,10 +60,10 @@ public class TrayFSM {
     public static int GREEN_THRESHOLD = 40;    // RGB fallback threshold for green
 
     // HSV parameters (hue in degrees 0..360, sat/val 0..1)
-    public static float GREEN_HUE_MIN = 65f;
-    public static float GREEN_HUE_MAX = 170f;
-    public static float PURPLE_HUE_MIN = 250f;
-    public static float PURPLE_HUE_MAX = 330f;
+    public static float GREEN_HUE_MIN = 170f;
+    public static float GREEN_HUE_MAX = 190f;
+    public static float PURPLE_HUE_MIN = 191f;
+    public static float PURPLE_HUE_MAX = 250f;
     public static float SAT_THRESHOLD = 0.25f;
     public static float VAL_THRESHOLD = 0.006f; // lower default to handle low-light readings
 
@@ -82,7 +81,7 @@ public class TrayFSM {
     public static double BALL_SETTLE_TIME = 0.1;
 
     // Sliding-window detection
-    private final int windowSize = 5; // number of recent samples to consider
+    private final int windowSize = 10; // number of recent samples to consider
     private final SlotState[] detectionWindow = new SlotState[windowSize];
     private int windowIndex = 0;
     public static int REQUIRED_DETECTIONS = 2; // how many occurrences in window to accept
@@ -149,6 +148,13 @@ public class TrayFSM {
         int[] rgb = readRGB255();
         // Add telemetry for raw rgb (0-255)
         telemetry.addData("RGB", "%d / %d / %d", rgb[0], rgb[1], rgb[2]);
+        float[] hsv = new float[3];
+        Color.RGBToHSV(rgb[0], rgb[1], rgb[2], hsv); // hsv[0]=hue(0..360), hsv[1]=sat(0..1), hsv[2]=val(0..1)
+        float hue = hsv[0];
+        float sat = hsv[1];
+        float val = hsv[2];
+        telemetry.addData("Hue", "%.1f", hue);
+        telemetry.addData("Sat/Val", "%.3f/%.3f", sat, val);
 
         switch (state) {
             case IDLE:
@@ -158,7 +164,7 @@ public class TrayFSM {
             case POSITION_TO_SLOT:
                 // Wait a short settle time after moving servo
                 // only proceed to INTAKE_WAIT after both settle time and servo movement are finished
-                if (timer.seconds() - stateStartTime >= SETTLE_TIME && timer.seconds() >= servoIgnoreUntil) {
+                if (timer.seconds() - stateStartTime >= TRAY_DELAY && timer.seconds() >= servoIgnoreUntil) {
                     // Start intake to try to capture a ball: run both rubber bands and the roller
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
@@ -380,6 +386,7 @@ public class TrayFSM {
         boolean lowBrightness = brightness < PRESENCE_THRESHOLD;
         boolean lowValue = val < VAL_THRESHOLD;
 
+        /*
         if (lowBrightness) {
             // If brightness is below the presence threshold, we won't accept HSV absolute criteria.
             // Instead allow the low-light relative heuristic (if enabled) to classify by ratios.
@@ -400,18 +407,27 @@ public class TrayFSM {
             }
         }
 
+         */
+
          // Use HSV ranges first (more robust to lighting)
-        if (val >= VAL_THRESHOLD && sat >= SAT_THRESHOLD) {
+        //if (val >= VAL_THRESHOLD && sat >= SAT_THRESHOLD) {
             if (isHueInRange(hue, GREEN_HUE_MIN, GREEN_HUE_MAX)) return SlotState.GREEN;
             if (isHueInRange(hue, PURPLE_HUE_MIN, PURPLE_HUE_MAX)) return SlotState.PURPLE;
-        }
+        //}
+
 
          // Fallback to RGB heuristics
+        /*
          if (g >= r && g >= b && g >= GREEN_THRESHOLD) return SlotState.GREEN;
          int redBlueAvg = (r + b) / 2;
          if (redBlueAvg >= PURPLE_THRESHOLD && redBlueAvg > g) return SlotState.PURPLE;
+
+         */
          return SlotState.UNKNOWN;
-     }
+
+    }
+
+
 
     private boolean isHueInRange(float hue, float min, float max) {
         if (min <= max) return hue >= min && hue <= max;

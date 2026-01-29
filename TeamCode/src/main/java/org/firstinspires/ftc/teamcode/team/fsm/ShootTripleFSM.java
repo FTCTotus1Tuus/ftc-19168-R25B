@@ -29,8 +29,8 @@ public class ShootTripleFSM {
     private boolean nbShootingActive = false;
     private double shootPower = 0;
     private boolean shotStarted = false;
-    public static double TRAY_DELAY = 0.8;
-    public static double SPINUP_DELAY = 1;
+    public static double TRAY_DELAY = 0.5;
+    public static double SPINUP_DELAY = 0;
     //private ShootTripleFSM.Stage state = ShootTripleFSM.Stage.IDLE;
     /**
      * Returns true if the auto-intake state machine is currently running (positioning or intaking).
