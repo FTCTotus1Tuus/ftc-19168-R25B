@@ -111,7 +111,7 @@ public class ShootTripleFSM {
                 shootArtifactFSM.setEjectionMotorsControlledByPattern(false);
                 break;
         }
-        opMode.telemetry.addData("Actual ShotGun RPM", opMode.ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM
+        opMode.telemetry.addData("Actual ShotGun RPM", opMode.ejectionMotor.getVelocity() * 60 / DarienOpModeFSM.TICKS_PER_ROTATION); // convert from ticks per second to RPM
     }
 
     public boolean isDone() {
