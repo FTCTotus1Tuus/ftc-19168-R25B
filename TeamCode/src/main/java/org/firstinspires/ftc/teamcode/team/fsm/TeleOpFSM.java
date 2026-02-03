@@ -194,49 +194,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     targetGoalTagId = APRILTAG_ID_GOAL_BLUE;
                     telemetry.addLine("ALIGN TURRET TO BLUE!");
                 } else if (isReadingAprilTag) {
-                    tagFSM.update(getRuntime(), true, telemetry);
-                    telemetry.addLine("Reading...");
-
-                    if (tagFSM.isDone()) {
-                        telemetry.addLine("DONE READING!");
-                        isReadingAprilTag = false;
-                        aprilTagDetections = tagFSM.getDetections();
-                        //aprilTagDetections.removeIf(tag -> tag.id != 24);
-                        if (targetGoalTagId == APRILTAG_ID_GOAL_RED) {
-                            aprilTagDetections.removeIf(tag -> tag.id == 20 || tag.id == 21 || tag.id == 22 || tag.id == 23);
-                            turretOffset = TURRET_OFFSET_RED;
-                        } else if (targetGoalTagId == APRILTAG_ID_GOAL_BLUE) {
-                            aprilTagDetections.removeIf(tag -> tag.id == 24 || tag.id == 21 || tag.id == 22 || tag.id == 23);
-                            turretOffset = TURRET_OFFSET_BLUE;
-                        }
-                        if (!aprilTagDetections.isEmpty()) {
-                            telemetry.addLine("FOUND APRILTAG!");
-                            tagFSM.telemetryAprilTag(telemetry);
-                            // Rotate the turret only if an apriltag is detected and it's the red goal apriltag id
-                            detection = aprilTagDetections.get(0);
-                            if (detection.id == targetGoalTagId) {
-                                telemetry.addLine("ALIGNING TO GOAL " + targetGoalTagId);
-                                yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
-
-                                // Current turret heading (degrees)
-                                currentHeadingDeg = turretFSM.getTurretHeading(); // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
-
-                                // Camera-relative bearing to AprilTag (degrees)
-                                rawBearingDeg = detection.ftcPose.bearing;
-
-                                if (!isCalculatingTurretTargetPosition) {
-                                    isCalculatingTurretTargetPosition = true;
-                                    targetServoPos = TURRET_POSITION_CENTER + turretOffset + RATIO_BETWEEN_TURRET_GEARS * rawBearingDeg / FIVE_ROTATION_SERVO_SPAN_DEG;
-                                    if (!Double.isNaN(targetServoPos)) {
-                                        currentTurretPosition = targetServoPos;
-                                        turretServo.setPosition(targetServoPos);
-                                    }
-                                }
-                            } // end detection.id == 20 or 24
-                        } // end detection is empty
-                    } // end tagFSM is done
-                    isCalculatingTurretTargetPosition = false;
-
+                    updateReadingGoalId();
                 } // end if (isReadingAprilTag)
 
                 displayTurretTelemetry(yaw, rawBearingDeg, currentHeadingDeg, currentTurretPosition, targetServoPos);
@@ -464,9 +422,10 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
     private void updateReadingGoalId() {
         tagFSM.update(getRuntime(), true, telemetry);
+        telemetry.addLine("Goal Detection: Reading...");
 
         if (tagFSM.isDone()) {
-            telemetry.addLine("DONE READING!");
+            telemetry.addLine("Goal Detection: DONE reading!");
             isReadingAprilTag = false;
             aprilTagDetections = tagFSM.getDetections();
             //aprilTagDetections.removeIf(tag -> tag.id != 24);
@@ -478,12 +437,11 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 turretOffset = TURRET_OFFSET_BLUE;
             }
             if (!aprilTagDetections.isEmpty()) {
-                telemetry.addLine("FOUND APRILTAG!");
-                tagFSM.telemetryAprilTag(telemetry);
-                // Rotate the turret only if an apriltag is detected and it's the red goal apriltag id
+                telemetry.addLine("Goal Detection: FOUND APRILTAG!");
+                // Rotate the turret only if an apriltag is detected and it's the target goal apriltag id
                 detection = aprilTagDetections.get(0);
                 if (detection.id == targetGoalTagId) {
-                    telemetry.addLine("ALIGNING TO GOAL " + targetGoalTagId);
+                    telemetry.addLine("Goal Detection: ALIGNING TURRET TO GOAL " + targetGoalTagId);
                     yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
                     // Current turret heading (degrees)
