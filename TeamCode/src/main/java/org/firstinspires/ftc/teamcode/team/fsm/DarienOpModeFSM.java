@@ -72,7 +72,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double TRAY_POS_1_INTAKE = 0.279;//275
     public static double TRAY_POS_2_INTAKE = 0.210;//205
     public static double TRAY_POS_3_INTAKE = 0.355;
-    public static double TRAY_POS_1_SCORE = 0.171;
+    public static double TRAY_POS_1_SCORE = 0.172;
     public static double TRAY_POS_2_SCORE = 0.243;
     public static double TRAY_POS_3_SCORE = 0.318;
     public static final double ELEVATOR_POS_UP = 0.85;
