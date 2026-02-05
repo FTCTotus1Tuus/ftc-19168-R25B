@@ -42,7 +42,7 @@ public class TrayFSM {
     private final DigitalChannel ledRight2;
     private final DigitalChannel ledLeft2;
 
-    // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 3..1)
+    // Slot servo target positions for intake slots (0, 1, 2 correspond to tray intake positions 3, 1, 2)
     private final double[] slotPositions = new double[]{DarienOpModeFSM.TRAY_POS_3_INTAKE, DarienOpModeFSM.TRAY_POS_1_INTAKE, DarienOpModeFSM.TRAY_POS_2_INTAKE};
 
 
