@@ -54,12 +54,12 @@ public class ShootPatternFSM {
         //WORKING WHEN GREEN IN 2
         switch (detection.id) {
             case 21:
-                motif = new double[]{DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE}; break; // GPP
+                motif = new double[]{DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE_GPP}; break; // GPP
             case 22:
                 motif = new double[]{DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE}; break; // PGP
             case 23:
             default:
-                motif = new double[]{DarienOpModeFSM.TRAY_POS_3_SCORE, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_2_SCORE}; break; // PPG
+                motif = new double[]{DarienOpModeFSM.TRAY_POS_3_SCORE_GPP, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_2_SCORE}; break; // PPG
         }
         // TODO: TUNE TRAY POSITION 3 SCORE .118
 

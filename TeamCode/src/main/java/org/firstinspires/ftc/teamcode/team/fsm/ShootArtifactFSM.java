@@ -93,7 +93,7 @@ public class ShootArtifactFSM {
     public void shotGun(double power) {
         //opMode.ejectionMotor.setPower(opMode.getVoltageAdjustedMotorPower(power));
         if (power == opMode.SHOT_GUN_POWER_UP) {
-            shotGunRPM(opMode.SHOT_GUN_POWER_UP_RPM);
+            shotGunRPM(opMode.SHOT_GUN_POWER_UP_RPM_AUTO);
         } else if (power == opMode.SHOT_GUN_POWER_UP_FAR) {
             shotGunRPM(opMode.SHOT_GUN_POWER_UP_FAR_RPM_AUTO);
         }
