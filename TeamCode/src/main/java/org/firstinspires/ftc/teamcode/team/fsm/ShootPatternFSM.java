@@ -31,7 +31,7 @@ public class ShootPatternFSM {
     private boolean nbShootingActive = false;
     private double shootPower = 0;
     private boolean shotStarted = false;
-    public static double TRAY_DELAY = 0.5;
+    public static double TRAY_DELAY = 0.95;
     public static double SPINUP_DELAY = 0;
 
     public void startShootPattern(ArrayList<AprilTagDetection> detections, double currentTime, double shootingPower) {
@@ -54,14 +54,16 @@ public class ShootPatternFSM {
         //WORKING WHEN GREEN IN 2
         switch (detection.id) {
             case 21:
-                motif = new double[]{DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE_GPP}; break; // GPP
+                motif = new double[]{DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE_GPP};
+                break; // GPP
             case 22:
-                motif = new double[]{DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE}; break; // PGP
+                motif = new double[]{DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE};
+                break; // PGP
             case 23:
             default:
-                motif = new double[]{DarienOpModeFSM.TRAY_POS_3_SCORE_GPP, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_2_SCORE}; break; // PPG
+                motif = new double[]{DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE_GPP, DarienOpModeFSM.TRAY_POS_2_SCORE};
+                break; // PPG
         }
-        // TODO: TUNE TRAY POSITION 3 SCORE .118
 
         if (nbMotifIndex >= motif.length) {
             nbShootingActive = false;
