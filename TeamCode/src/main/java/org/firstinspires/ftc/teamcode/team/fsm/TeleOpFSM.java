@@ -55,7 +55,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
     // AUTOMATIC TURRET CONTROLS BASED ON CAMERA APRILTAG DETECTION
     AprilTagDetection detection;
-    double yaw; // Stores detection.ftcPose.yaw
+    double yaw, range; // Stores detection.ftcPose.yaw
     double currentHeadingDeg;
     double relativeHeadingDeg; // Camera-relative bearing to AprilTag (degrees)
     double targetServoPos = Double.NaN; // Convert heading → servo position
@@ -215,7 +215,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     updateReadingGoalId();
                 } // end if (isReadingAprilTag)
 
-                displayTurretTelemetry(yaw, rawBearingDeg, currentHeadingDeg, currentTurretPosition, targetServoPos);
+                displayTurretTelemetry(yaw, rawBearingDeg, currentHeadingDeg, currentTurretPosition, targetServoPos, range);
 
                 //CONTROL: ELEVATOR
                 if (gamepad2.left_bumper) {
@@ -465,6 +465,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 if (detection.id == targetGoalTagId && detection.ftcPose != null) {
                     telemetry.addLine("Goal Detection: ALIGNING TURRET TO GOAL " + targetGoalTagId);
                     yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
+                    range = detection.ftcPose.range; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
                     // Current turret heading (degrees)
                     currentHeadingDeg = turretFSM.getTurretHeading(); // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
@@ -488,12 +489,13 @@ public class TeleOpFSM extends DarienOpModeFSM {
         isCalculatingTurretTargetPosition = false;
     }
 
-    private void displayTurretTelemetry(double yaw, double rawBearingDeg, double currentHeadingDeg, double currentTurretPosition, double targetServoPos) {
+    private void displayTurretTelemetry(double yaw, double rawBearingDeg, double currentHeadingDeg, double currentTurretPosition, double targetServoPos, double distanceFromGoal) {
         telemetry.addData("yaw", yaw);
         telemetry.addData("Raw Bearing Deg (alpha)", rawBearingDeg);
         telemetry.addData("currentHeadingDeg (C0)", currentHeadingDeg);
         telemetry.addData("currentTurretPosition", currentTurretPosition);
         telemetry.addData("targetServoPos", targetServoPos);
+        telemetry.addData("range", distanceFromGoal);
         // DO NOT ADD telemetry.update() HERE
     }
 

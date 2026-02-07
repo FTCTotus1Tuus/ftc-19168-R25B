@@ -67,10 +67,10 @@ public class TrayFSM {
     public static int GREEN_THRESHOLD = 40;    // RGB fallback threshold for green
 
     // HSV parameters (hue in degrees 0..360, sat/val 0..1)
-    public static float GREEN_HUE_MIN = 170f;
-    public static float GREEN_HUE_MAX = 190f;
-    public static float PURPLE_HUE_MIN = 191f;
-    public static float PURPLE_HUE_MAX = 250f;
+    public static float GREEN_HUE_MIN = 120f;
+    public static float GREEN_HUE_MAX = 180f;
+    public static float PURPLE_HUE_MIN = 180f;
+    public static float PURPLE_HUE_MAX = 240f;
     public static float SAT_THRESHOLD = 0.25f;
     public static float VAL_THRESHOLD = 0.006f; // lower default to handle low-light readings
 
@@ -91,7 +91,7 @@ public class TrayFSM {
     private final int windowSize = 10; // number of recent samples to consider
     private final SlotState[] detectionWindow = new SlotState[windowSize];
     private int windowIndex = 0;
-    public static int REQUIRED_DETECTIONS = 2; // how many occurrences in window to accept
+    public static int REQUIRED_DETECTIONS = 5; // how many occurrences in window to accept
 
     // Brightness gating (optional). If >0, require brightness increase over baseline to count samples
     private int baselineBrightness = 0;

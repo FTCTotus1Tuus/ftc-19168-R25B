@@ -29,7 +29,7 @@ public class ShootTripleFSM {
     private boolean nbShootingActive = false;
     private double shootPower = 0;
     private boolean shotStarted = false;
-    public static double TRAY_DELAY = 0.5;
+    public static double TRAY_DELAY = 0.65;
     public static double SPINUP_DELAY = 0;
     //private ShootTripleFSM.Stage state = ShootTripleFSM.Stage.IDLE;
     /**

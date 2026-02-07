@@ -44,6 +44,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
     public static double SHOTGUN_SPINUP_DELAY = 1.0;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
     public static double SHOOT_TRIPLE_TIMEOUT = 5.0;
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -198,7 +199,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                             new BezierCurve(
                                     new Pose(26, 84.305),
                                     new Pose(48.222, 97.613),
-                                    new Pose(59.235, 116.63499420625725)
+                                    new Pose(59.235, 116.635)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(157))
