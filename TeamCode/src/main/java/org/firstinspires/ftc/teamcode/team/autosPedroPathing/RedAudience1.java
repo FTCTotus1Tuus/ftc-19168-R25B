@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 
 
-@Autonomous(name = "RedAudienceSidePedro", group = "Pedro:Reds", preselectTeleOp = "TeleopFSM")
+@Autonomous(name = "Red Audience 6", group = "Pedro:Reds", preselectTeleOp = "TeleopFSM")
 @Configurable
 public class RedAudience1 extends DarienOpModeFSM {
     private TelemetryManager panelsTelemetry;   // Panels Telemetry instance
