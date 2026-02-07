@@ -15,6 +15,12 @@ import com.bylazar.telemetry.TelemetryManager;
 //import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.Range;
 
+import android.content.SharedPreferences;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
 @TeleOp(name = "TeleopFSM", group = "DriverControl")
 @Config
 @Configurable
@@ -63,6 +69,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
     int targetGoalTagId;
     double turretOffset;
+    private String autoAlliance = "UNKNOWN";
 
     // PIDF Tuning values for ejection motor
     /*
@@ -99,6 +106,17 @@ public class TeleOpFSM extends DarienOpModeFSM {
         tp = new TelemetryPacket();
         dash = FtcDashboard.getInstance();
 
+        SharedPreferences prefs = AppUtil.getInstance().getActivity().getSharedPreferences("ftc_prefs", android.content.Context.MODE_PRIVATE);
+        autoAlliance = prefs.getString("auto_alliance", "UNKNOWN");
+
+        // Set align color based on saved color from auto
+        if ("BLUE".equals(autoAlliance)) {
+            targetGoalTagId = APRILTAG_ID_GOAL_BLUE;
+            turretOffset = TURRET_OFFSET_BLUE;
+        } else if ("RED".equals(autoAlliance)) {
+            targetGoalTagId = APRILTAG_ID_GOAL_RED;
+            turretOffset = TURRET_OFFSET_RED;
+        }
 
         waitForStart();
         if (isStopRequested()) return;
@@ -410,6 +428,10 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     pidfModified.p, pidfModified.i, pidfModified.d, pidfModified.f);
 
              */
+
+            // Display alliance color from SharedPreferences
+            telemetry.addData("Alliance Color from Auto", autoAlliance);
+            telemetry.addData("Target AprilTag ID", targetGoalTagId);
 
             telemetry.update();
         } //while opModeIsActive

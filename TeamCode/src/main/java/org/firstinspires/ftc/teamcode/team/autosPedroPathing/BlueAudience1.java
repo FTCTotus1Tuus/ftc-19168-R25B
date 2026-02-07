@@ -12,6 +12,10 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
+import android.content.SharedPreferences;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 
@@ -48,8 +52,15 @@ public class BlueAudience1 extends DarienOpModeFSM {
         panelsTelemetry.debug("Status", "Initialized");
         panelsTelemetry.update(telemetry);
 
-        telemetry.addLine("BlueGoalSidePedro: READY");
+        telemetry.addLine("BlueAudienceSidePedro: READY");
         telemetry.update();
+
+        // Save alliance color to shared preferences for TeleOp
+        SharedPreferences prefs = AppUtil.getInstance().getActivity().getSharedPreferences("ftc_prefs", android.content.Context.MODE_PRIVATE);
+        prefs.edit().putString("auto_alliance", "BLUE").apply();
+
+        telemetry.addLine("Alliance Color: BLUE (Saved to Preferences)");
+
 
         // --- WAIT FOR START ---
         waitForStart();
@@ -60,6 +71,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
         opmodeTimer.resetTimer();
         setPathState(0);
 
+        targetGoalId = APRILTAG_ID_GOAL_BLUE;
         // Set the initial tray position immediately.
         setTrayPosition(TRAY_POS_1_SCORE);
 
@@ -92,7 +104,9 @@ public class BlueAudience1 extends DarienOpModeFSM {
             panelsTelemetry.addData("X", follower.getPose().getX());
             panelsTelemetry.addData("Y", follower.getPose().getY());
             panelsTelemetry.addData("Heading", follower.getPose().getHeading());
+            panelsTelemetry.addData("Alliance Color", "BLUE");
             panelsTelemetry.update(telemetry);
+            telemetry.addData("Alliance Color Saved", "BLUE");
 
             telemetry.update();
         }
