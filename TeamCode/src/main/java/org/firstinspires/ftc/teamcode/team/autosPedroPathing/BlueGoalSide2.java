@@ -38,13 +38,13 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
 
     public static double PATH_POWER_STANDARD = 1.0;
     public static double PATH_POWER_SLOW = 0.4;
-    //public static double SHOT_GUN_POWER_UP = 0.6*.9;
+
 
     public static double INTAKE_RUBBER_BANDS_DELAY = 0.2;
     public static double BALL_INTAKE_DELAY = 1.15;
     public static double SHOTGUN_SPINUP_DELAY = 0.3;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
-    public static double SHOOT_TRIPLE_TIMEOUT = 5.0;
+    public static double SHOOT_TRIPLE_TIMEOUT = 5.5;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -89,7 +89,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
         targetGoalId = APRILTAG_ID_GOAL_BLUE;
         // Set the initial tray position immediately.
         TrayServo.setPosition(TRAY_POS_1_SCORE);
-        //shotgunFSM.toPowerUp(SHOT_GUN_POWER_UP_RPM);
+
 
         // --- MAIN AUTONOMOUS LOOP ---
         while (opModeIsActive() && !isStopRequested()) {
@@ -101,17 +101,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
             pathState = autonomousPathUpdate();
 
 
-            /*
-            // Update tray servo FSM if running
-            if (trayServoFSM.isRunning()) {
-                trayServoFSM.update(getRuntime());
-                if (!trayServoFSM.isRunning()) {
-                    // Update current tray position when done
-                    currentTrayPosition = targetTrayPosition;
-                }
-            }
 
-             */
 
             // Panels/driver telemetry
             panelsTelemetry.addData("Tray Curr", currentTrayPosition);
@@ -309,6 +299,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                     aprilTagDetections = tagFSM.getDetections();
 
                     telemetry.addLine("Case " + pathState + ": exiting");
+                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     follower.followPath(paths.ShootingPosition1);
                     setPathState(pathState + 1);
                 }
@@ -339,7 +330,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > SHOOT_TRIPLE_TIMEOUT) {
 
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                    // topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
                     TrayServo.setPosition(TRAY_POS_2_INTAKE);
@@ -411,7 +402,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                     follower.followPath(paths.ShootingPosition2, true);
                     TrayServo.setPosition(TRAY_POS_2_SCORE);
                     rubberBands.setPower(0);
-                    topIntake.setPower(0);
+                    //topIntake.setPower(0);
                     leftIntake.setPower(0);
                     rightIntake.setPower(0);
                     shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP);
@@ -437,7 +428,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > SHOOT_TRIPLE_TIMEOUT) {
 
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                    //  topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
                     TrayServo.setPosition(TRAY_POS_1_INTAKE);
@@ -509,7 +500,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                     follower.followPath(paths.Parking, true);
                     TrayServo.setPosition(TRAY_POS_2_SCORE);
                     rubberBands.setPower(0);
-                    topIntake.setPower(0);
+                    // topIntake.setPower(0);
                     leftIntake.setPower(0);
                     rightIntake.setPower(0);
                     shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP);
@@ -533,6 +524,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                 shootPatternFSM.updateShootPattern(getRuntime());
                 if (shootPatternFSM.isShootPatternDone()) {
                     telemetry.addLine("Case " + pathState + ": Done, setting state -1");
+                    topIntake.setPower(0);
                     //rubberBands.setPower(0);
                     setPathState(-1); // done
                 }

@@ -36,7 +36,6 @@ public class RedGoalSide1 extends DarienOpModeFSM {
 
     public static double PATH_POWER_STANDARD = 0.9;
     public static double PATH_POWER_SLOW = 0.3;
-    //public static double SHOT_GUN_POWER_UP = 0.6*.9;
 
     public static double INTAKE_RUBBER_BANDS_DELAY = 0.2;
     public static double BALL_INTAKE_DELAY = 1.5;
@@ -309,13 +308,6 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 2p");
 
-                    /*
-                    rubberBands.setPower(0);
-                    topIntake.setPower(0);
-                    leftIntake.setPower(0);
-                    rightIntake.setPower(0);
-
-                     */
                     TrayServo.setPosition(TRAY_POS_1_INTAKE);
 
                     setPathState(pathState + 1);
@@ -325,13 +317,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             case 8:
                 //wait for tray to rotate before next pickup
                 if (pathTimer.getElapsedTimeSeconds() > INTAKE_RUBBER_BANDS_DELAY) {
-                    /*
-                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
 
-                     */
                     follower.followPath(paths.Path5, true);
                     setPathState(pathState + 1);
                 }
@@ -341,13 +327,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Wait for Path5");
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 3g");
-                    /*
-                    rubberBands.setPower(0);
-                    topIntake.setPower(0);
-                    leftIntake.setPower(0);
-                    rightIntake.setPower(0);
 
-                     */
                     TrayServo.setPosition(TRAY_POS_3_INTAKE);
                     setPathState(pathState + 1);
                 }
@@ -356,13 +336,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             case 10:
                 //wait for tray to rotate before next pickup
                 if (pathTimer.getElapsedTimeSeconds() > INTAKE_RUBBER_BANDS_DELAY) {
-                    /*
-                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
 
-                     */
                     follower.followPath(paths.Path6, true);
                     setPathState(pathState + 1);
                 }
@@ -389,7 +363,7 @@ public class RedGoalSide1 extends DarienOpModeFSM {
             case 12:
                 telemetry.addLine("Case " + pathState + ": Wait for Path7 to get into position, then start Path8");
 
-                //shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP); // 31/32 power
+
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > SHOTGUN_SPINUP_DELAY) {
                     telemetry.addLine("Case " + pathState + ": Shoot the pattern");
 
