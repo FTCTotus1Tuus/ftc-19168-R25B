@@ -29,6 +29,16 @@ public class BlueAudience1 extends DarienOpModeFSM {
     private Paths paths;                        // Paths
     private Timer pathTimer, opmodeTimer;
 
+    public static double PATH_POWER_STANDARD = 0.9;
+    public static double PATH_POWER_SLOW = 0.3;
+    //public static double SHOT_GUN_POWER_UP = 0.6*.9;
+
+    public static double INTAKE_RUBBER_BANDS_DELAY = 0.2;
+    public static double BALL_INTAKE_DELAY = 1.5;
+    public static double SHOTGUN_SPINUP_DELAY = 1.0;
+    public static double STANDARD_PATH_TIMEOUT = 2.0;
+    public static double SHOOT_TRIPLE_TIMEOUT = 5.0;
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -200,9 +210,9 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Wait for Camera");
 
                 // Set the initial tray position
-                setTrayPosition(TRAY_POS_1_SCORE);
+                TrayServo.setPosition(TRAY_POS_1_SCORE);
                 tagFSM.start(getRuntime());
-                follower.setMaxPower(.9); //normal speed
+                follower.setMaxPower(PATH_POWER_STANDARD); //normal speed
                 if (pathTimer.getElapsedTimeSeconds() > 1.0) {
 
                     telemetry.addLine("Case " + pathState + ": exiting");
@@ -217,7 +227,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 tagFSM.update(getRuntime(), true, telemetry);
 
-                if ((tagFSM.isDone()) || pathTimer.getElapsedTimeSeconds() > 2) {
+                if ((tagFSM.isDone()) || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) {
                     aprilTagDetections = tagFSM.getDetections();
                     aprilTagDetections.removeIf(tag -> tag.id == 20 || tag.id == 24);
                     follower.followPath(paths.ShootingPosition);
@@ -230,7 +240,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //move to shooting position 1
                 telemetry.addLine("Case " + pathState + ": wait for Path 1...");
 
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > SHOTGUN_SPINUP_DELAY) {
 
                     setPathState(pathState + 1);
                 }
@@ -242,7 +252,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP_FAR);
 
-                if (pathTimer.getElapsedTimeSeconds() > 3) { // increased time to allow for motor to spin up
+                if (pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) { // increased time to allow for motor to spin up
                     setPathState(pathState + 1);
                 }
                 break;
@@ -253,7 +263,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 shootPatternFSM.updateShootPattern(getRuntime());
 
-                if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
+                if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
 
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                     topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
@@ -267,7 +277,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //when in position, go to intake position 1
                 telemetry.addLine("Case " + pathState + ": Going to intake position 1");
 
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
                     follower.setMaxPower(0.2); //slow down for pickup
 
                     setTrayPosition(TRAY_POS_2_INTAKE);
@@ -280,9 +290,8 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //when ball 1 intaken, move to intake position 2
                 telemetry.addLine("Case " + pathState + ": Intaking ball 1g");
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
 
-                    setTrayPosition(TRAY_POS_3_INTAKE);
                     follower.followPath(paths.Intake2, true);
                     setPathState(pathState + 1);
                 }
@@ -291,7 +300,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
             case 7:
                 //move to intake position 3
                 telemetry.addLine("Case " + pathState + ": Intaking ball 3p");
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3) {
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
 
                     setTrayPosition(TRAY_POS_1_INTAKE);
                     follower.followPath(paths.Intake3, true);
@@ -303,7 +312,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 //once ball 3p intaken, move to shooting position 2
                 telemetry.addLine("Case " + pathState + ": Move to shoot position 2");
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 3.5) { // increased time to allow for motor to spin up
+                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) { // increased time to allow for motor to spin up
                     follower.setMaxPower(.9); //reset to normal speed
                     setTrayPosition(TRAY_POS_2_SCORE);
 
@@ -318,7 +327,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Wait for ShootingPosition, then shoot artifact");
 
 
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2.0) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > SHOTGUN_SPINUP_DELAY) {
                     shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP_FAR);
                     setPathState(pathState + 1);
                 }
@@ -330,7 +339,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 shootPatternFSM.updateShootPattern(getRuntime());
 
-                if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
+                if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) {
                     rubberBands.setPower(0); //stop intake
                     topIntake.setPower(0);
                     follower.followPath(paths.Parking, true);
@@ -340,7 +349,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
             case 11:
                 // finish the move to parking
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 3.0) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) {
                     setPathState(-1);
                 }
                 break;
