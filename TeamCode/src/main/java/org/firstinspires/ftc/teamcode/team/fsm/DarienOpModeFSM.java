@@ -115,8 +115,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double EJECTION_F=12.5;
 
     // PID Constants for custom MotorHelper PID functions
-    public static double SHOT_GUN_PGAIN = 0.03;
-    public static double SHOT_GUN_PGAIN2 = 0.03;
+    public static double SHOT_GUN_PGAIN = 0.07;
+    public static double SHOT_GUN_PGAIN2 = 0.07;
     public static double SHOT_GUN_IGAIN = 0.0002;
     public static double SHOT_GUN_PDUTY_MIN = -0.5;
     public static double SHOT_GUN_PDUTY_MAX = 1;
