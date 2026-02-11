@@ -43,7 +43,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
     public static double BALL_INTAKE_DELAY = 1.5;
     public static double SHOTGUN_SPINUP_DELAY = 1.0;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
-    public static double SHOOT_TRIPLE_TIMEOUT = 5.0;
+    public static double SHOOT_TRIPLE_TIMEOUT = 5.5;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -88,7 +88,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
         targetGoalId = APRILTAG_ID_GOAL_BLUE;
         // Set the initial tray position immediately.
         TrayServo.setPosition(TRAY_POS_1_SCORE);
-        //shotgunFSM.toPowerUp(SHOT_GUN_POWER_UP_RPM);
 
         // --- MAIN AUTONOMOUS LOOP ---
         while (opModeIsActive() && !isStopRequested()) {
