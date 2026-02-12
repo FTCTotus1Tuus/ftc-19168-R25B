@@ -11,7 +11,6 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import android.content.SharedPreferences;
 
@@ -130,18 +129,18 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
      */
     public static class Paths {
 
-        public PathChain Path1;
-        public PathChain Path2;
-        public PathChain Path3;
-        public PathChain Path4;
-        public PathChain Path5;
-        public PathChain Path6;
-        public PathChain Path7;
-        public PathChain Path8;
+        public PathChain ReadAprilTag;
+        public PathChain ShootingPosition1;
+        public PathChain IntakePosition1;
+        public PathChain IntakeBall1p;
+        public PathChain IntakeBall2p;
+        public PathChain IntakeBall3g;
+        public PathChain ShootingPosition2;
+        public PathChain Parking;
 
         // 67
         public Paths(Follower follower) {
-            Path1 = follower
+            ReadAprilTag = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(
@@ -151,7 +150,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .setLinearHeadingInterpolation(Math.toRadians(54), Math.toRadians(70))
                     .build();
 
-            Path2 = follower
+            ShootingPosition1 = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(new Pose(47.224, 96.443, Math.toRadians(70)), new Pose(47.234, 96.443, Math.toRadians(145)))
@@ -159,7 +158,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .setLinearHeadingInterpolation(Math.toRadians(70), Math.toRadians(145))
                     .build();
 
-            Path3 = follower
+            IntakePosition1 = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(new Pose(43.234, 96.443), new Pose(43.5, 84.305))
@@ -167,7 +166,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
                     .build();
 
-            Path4 = follower
+            IntakeBall1p = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(new Pose(43.5, 84.305), new Pose(36, 84.305)) //intake 1
@@ -175,7 +174,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .setTangentHeadingInterpolation()
                     .build();
 
-            Path5 = follower
+            IntakeBall2p = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(new Pose(36, 84.305), new Pose(31, 84.305)) //intake 2
@@ -183,7 +182,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .setTangentHeadingInterpolation()
                     .build();
 
-            Path6 = follower
+            IntakeBall3g = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(new Pose(31, 84.305), new Pose(26, 84.305)) //intake 3
@@ -191,7 +190,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .setTangentHeadingInterpolation()
                     .build();
 
-            Path7 = follower
+            ShootingPosition2 = follower
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
@@ -203,7 +202,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(157))
                     .build();
 
-            Path8 = follower
+            Parking = follower
                     .pathBuilder()
                     .addPath(
                             new BezierLine(new Pose(47.224, 96.443), new Pose(47.557, 122.383))
@@ -213,10 +212,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
         }
     }
 
-    /**
-     * State machine for autonomous sequence.
-     * Returns current pathState for logging.
-     */
+
     public int autonomousPathUpdate() {
 
         // Helpful debug info every loop
@@ -232,7 +228,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 TrayServo.setPosition(TRAY_POS_1_SCORE);
                 follower.setMaxPower(PATH_POWER_STANDARD);
                 shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP);
-                follower.followPath(paths.Path1);
+                follower.followPath(paths.ReadAprilTag);
                 setPathState(pathState + 1);
                 break;
 
@@ -258,14 +254,15 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     aprilTagDetections = tagFSM.getDetections();
 
                     telemetry.addLine("Case " + pathState + ": exiting");
-                    follower.followPath(paths.Path2);
+                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                    follower.followPath(paths.ShootingPosition1);
                     setPathState(pathState + 1);
                 }
                 break;
 
             case 3:
                 telemetry.addLine("Case " + pathState + ": Wait for Path2, then shoot artifact");
-                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) {
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT * .25) {
                     telemetry.addLine("Case " + pathState + ": exiting");
                     setPathState(pathState + 1);
                 }
@@ -288,25 +285,25 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > SHOOT_TRIPLE_TIMEOUT) {
 
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
+                    // topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
                     TrayServo.setPosition(TRAY_POS_2_INTAKE);
 
                     // now continue with next path
-                    follower.followPath(paths.Path3, true);
+                    follower.followPath(paths.IntakePosition1, true);
                     setPathState(pathState + 1);
                 }
                 break;
 
-            case 6:
+            case 6: //apples
                 telemetry.addLine("Case " + pathState + ": Wait for Path3, then start Path4");
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 1p");
 
                     follower.setMaxPower(PATH_POWER_SLOW); //slow down for pickup
 
-                    follower.followPath(paths.Path4, true);
+                    follower.followPath(paths.IntakeBall1p, true);
                     setPathState(pathState + 1);
                 }
                 break;
@@ -316,13 +313,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 2p");
 
-                    /*
-                    rubberBands.setPower(0);
-                    topIntake.setPower(0);
-                    leftIntake.setPower(0);
-                    rightIntake.setPower(0);
-
-                     */
                     TrayServo.setPosition(TRAY_POS_1_INTAKE);
 
                     setPathState(pathState + 1);
@@ -332,14 +322,8 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
             case 8:
                 //wait for tray to rotate before next pickup
                 if (pathTimer.getElapsedTimeSeconds() > INTAKE_RUBBER_BANDS_DELAY) {
-                    /*
-                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
 
-                     */
-                    follower.followPath(paths.Path5, true);
+                    follower.followPath(paths.IntakeBall2p, true);
                     setPathState(pathState + 1);
                 }
                 break;
@@ -348,13 +332,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Wait for Path5");
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 3g");
-                    /*
-                    rubberBands.setPower(0);
-                    topIntake.setPower(0);
-                    leftIntake.setPower(0);
-                    rightIntake.setPower(0);
 
-                     */
                     TrayServo.setPosition(TRAY_POS_3_INTAKE);
                     setPathState(pathState + 1);
                 }
@@ -363,14 +341,8 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
             case 10:
                 //wait for tray to rotate before next pickup
                 if (pathTimer.getElapsedTimeSeconds() > INTAKE_RUBBER_BANDS_DELAY) {
-                    /*
-                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
-                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
-                    rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
 
-                     */
-                    follower.followPath(paths.Path6, true);
+                    follower.followPath(paths.IntakeBall3g, true);
                     setPathState(pathState + 1);
                 }
                 break;
@@ -382,10 +354,10 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     telemetry.addLine("Case " + pathState + ": Moving to shooting position");
                     follower.setMaxPower(PATH_POWER_STANDARD);// resume normal speed
 
-                    follower.followPath(paths.Path7, true);
+                    follower.followPath(paths.ShootingPosition2, true);
                     TrayServo.setPosition(TRAY_POS_2_SCORE);
                     rubberBands.setPower(0);
-                    topIntake.setPower(0);
+                    //topIntake.setPower(0);
                     leftIntake.setPower(0);
                     rightIntake.setPower(0);
                     shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP);
@@ -396,7 +368,6 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
             case 12:
                 telemetry.addLine("Case " + pathState + ": Wait for Path7 to get into position, then start Path8");
 
-                //shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP); // 31/32 power
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > SHOTGUN_SPINUP_DELAY) {
                     telemetry.addLine("Case " + pathState + ": Shoot the pattern");
 
@@ -410,6 +381,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                 shootPatternFSM.updateShootPattern(getRuntime());
                 if (shootPatternFSM.isShootPatternDone()) {
                     telemetry.addLine("Case " + pathState + ": Done, setting state -1");
+                    topIntake.setPower(0);
                     //rubberBands.setPower(0);
                     setPathState(-1); // done
                 }
