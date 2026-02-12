@@ -84,6 +84,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
         targetGoalId = APRILTAG_ID_GOAL_BLUE;
         // Set the initial tray position immediately.
         TrayServo.setPosition(TRAY_POS_1_SCORE);
+        // Constantly run top roller in intake mode
         topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
 
         // --- MAIN AUTONOMOUS LOOP ---
