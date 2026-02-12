@@ -82,7 +82,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double SHOT_GUN_POWER_UP_FAR = 0.64;//66
     public static double SHOT_GUN_POWER_UP_RPM = 700; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_UP_RPM_AUTO = 650;
-    public static double SHOT_GUN_POWER_UP_FAR_RPM_AUTO = 800;// tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_UP_FAR_RPM_AUTO = 760;// tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_UP_FAR_RPM_TELEOP = 850; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
 
