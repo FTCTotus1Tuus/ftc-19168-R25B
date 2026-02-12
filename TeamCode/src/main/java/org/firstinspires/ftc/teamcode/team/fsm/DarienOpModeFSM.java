@@ -130,8 +130,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     public final int APRILTAG_ID_GOAL_BLUE = 20;
     public final int APRILTAG_ID_GOAL_RED = 24;
-    public static double TURRET_OFFSET_RED = 0.005;
-    public static double TURRET_OFFSET_BLUE = 0.01;
+    public static double TURRET_OFFSET_RED = 0.0;
+    public static double TURRET_OFFSET_BLUE = 0.0;
 
     // DYNAMIC VARIABLES
     public double currentTrayPosition;
