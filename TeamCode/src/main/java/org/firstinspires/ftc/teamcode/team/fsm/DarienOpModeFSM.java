@@ -14,12 +14,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.teamcode.team.MotorHelper;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Base OpMode for Pedro pathing and state machine logic.
@@ -132,6 +135,12 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public final int APRILTAG_ID_GOAL_RED = 24;
     public static double TURRET_OFFSET_RED = 0.0;
     public static double TURRET_OFFSET_BLUE = 0.0;
+
+    // CAMERA EXPOSURE/GAIN SETTINGS FOR APRILTAG DETECTION
+    // Low exposure (5-6ms) with high gain reduces motion blur and improves far-distance detection
+    // Tune these values using the TuneAprilTagExposure OpMode while viewing camera stream
+    public static int APRILTAG_EXPOSURE_MS = 6;  // Milliseconds (lower = less blur, start with 5-6)
+    public static int APRILTAG_GAIN = 255;       // 0-255 (higher = brighter in low light, start at max)
 
     // DYNAMIC VARIABLES
     public double currentTrayPosition;
@@ -289,6 +298,109 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         visionPortal = VisionPortal.easyCreateWithDefaults(
                 hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
 
+        // Set manual exposure and gain to reduce motion blur and improve detection at distance
+        // This is especially important for detecting AprilTags from far positions
+        setManualExposure(APRILTAG_EXPOSURE_MS, APRILTAG_GAIN);
+    }
+
+    /**
+     * Manually set the camera gain and exposure for AprilTag detection.
+     * Low exposure (5-6ms) with high gain reduces motion blur.
+     * Can only be called AFTER calling initAprilTag().
+     *
+     * @param exposureMS Camera exposure time in milliseconds
+     * @param gain       Camera gain value (typically 0-255)
+     * @return true if controls are set successfully
+     */
+    private boolean setManualExposure(int exposureMS, int gain) {
+        // Ensure Vision Portal has been setup
+        if (visionPortal == null) {
+            return false;
+        }
+
+        // Wait for the camera to be open
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera", "Waiting for stream...");
+            telemetry.update();
+            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+                sleep(20);
+            }
+            telemetry.addData("Camera", "Ready");
+            telemetry.update();
+        }
+
+        // Set camera controls unless we are stopping
+        if (!isStopRequested()) {
+            try {
+                // Set exposure - must be in Manual Mode for these values to take effect
+                ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+                if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
+                    exposureControl.setMode(ExposureControl.Mode.Manual);
+                    sleep(50);
+                }
+                exposureControl.setExposure(exposureMS, TimeUnit.MILLISECONDS);
+                sleep(20);
+
+                // Set Gain
+                GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+                gainControl.setGain(gain);
+                sleep(20);
+
+                telemetry.addData("Camera Exposure", exposureMS + "ms");
+                telemetry.addData("Camera Gain", gain);
+                telemetry.update();
+                return true;
+            } catch (Exception e) {
+                telemetry.addData("Camera Control Error", e.getMessage());
+                telemetry.update();
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Read this camera's minimum and maximum Exposure and Gain settings.
+     * Useful for tuning and debugging.
+     * Can only be called AFTER calling initAprilTag().
+     *
+     * @return int array: [minExposure, maxExposure, minGain, maxGain]
+     */
+    public int[] getCameraSettings() {
+        // Ensure Vision Portal has been setup
+        if (visionPortal == null) {
+            return new int[]{0, 0, 0, 0};
+        }
+
+        // Wait for the camera to be open
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera", "Waiting for stream...");
+            telemetry.update();
+            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+                sleep(20);
+            }
+        }
+
+        // Get camera control values unless we are stopping
+        if (!isStopRequested()) {
+            try {
+                ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+                int minExposure = (int) exposureControl.getMinExposure(TimeUnit.MILLISECONDS) + 1;
+                int maxExposure = (int) exposureControl.getMaxExposure(TimeUnit.MILLISECONDS);
+
+                GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+                int minGain = gainControl.getMinGain();
+                int maxGain = gainControl.getMaxGain();
+
+                return new int[]{minExposure, maxExposure, minGain, maxGain};
+            } catch (Exception e) {
+                telemetry.addData("Camera Settings Error", e.getMessage());
+                telemetry.update();
+                return new int[]{0, 0, 0, 0};
+            }
+        }
+        return new int[]{0, 0, 0, 0};
     }
 
     /**
