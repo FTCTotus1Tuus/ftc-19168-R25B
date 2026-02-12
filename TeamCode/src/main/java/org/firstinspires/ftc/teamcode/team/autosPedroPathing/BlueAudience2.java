@@ -32,11 +32,11 @@ public class BlueAudience2 extends DarienOpModeFSM {
     private Timer pathTimer, opmodeTimer;
 
     public static double PATH_POWER_STANDARD = 1;
-    public static double PATH_POWER_SLOW = 0.4;
+    public static double PATH_POWER_SLOW = 0.25;
     //public static double SHOT_GUN_POWER_UP = 0.6*.9;
 
     public static double INTAKE_RUBBER_BANDS_DELAY = 0.2;
-    public static double BALL_INTAKE_DELAY = 1.5;
+    public static double BALL_INTAKE_DELAY = 1.0;
     public static double SHOTGUN_SPINUP_DELAY = 1.0;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
     public static double SHOOT_TRIPLE_TIMEOUT = 7.0;
@@ -83,7 +83,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
 
         targetGoalId = APRILTAG_ID_GOAL_BLUE;
         // Set the initial tray position immediately.
-        setTrayPosition(TRAY_POS_1_SCORE);
+        TrayServo.setPosition(TRAY_POS_1_SCORE);
         topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
 
         // --- MAIN AUTONOMOUS LOOP ---
@@ -147,7 +147,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 9.000), new Pose(56.000, 18.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(113))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(115))
                     .build();
 
             IntakePosition = follower
@@ -155,7 +155,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 18.000), new Pose(44.500, 35.750))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(113), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(115), Math.toRadians(180))
                     .build();
 
             Intake1 = follower
@@ -191,7 +191,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
                                     new Pose(56.000, 18.000)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(115))
                     .build();
 
             IntakePosition2 = follower.pathBuilder().addPath(
@@ -200,7 +200,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
 
                                     new Pose(43.500, 60.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(113), Math.toRadians(180))
+                    ).setLinearHeadingInterpolation(Math.toRadians(115), Math.toRadians(180))
 
                     .build();
 
@@ -240,7 +240,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
 
                                     new Pose(56.000, 18.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
+                    ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(115))
 
                     .build();
 
@@ -250,7 +250,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
 
                                     new Pose(56.000, 31.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(113), Math.toRadians(90))
+                    ).setLinearHeadingInterpolation(Math.toRadians(115), Math.toRadians(90))
 
                     .build();
         }
@@ -375,7 +375,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
                 //once ball 3p intaken, move to shooting position 2
                 telemetry.addLine("Case " + pathState + ": Move to shoot position 2");
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) { // increased time to allow for motor to spin up
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) { // increased time to allow for motor to spin up
                     follower.setMaxPower(PATH_POWER_STANDARD); //reset to normal speed
                     setTrayPosition(TRAY_POS_2_SCORE);
 
@@ -454,7 +454,7 @@ public class BlueAudience2 extends DarienOpModeFSM {
                 //once ball 3p intaken, move to shooting position 2
                 telemetry.addLine("Case " + pathState + ": Move to shoot position 2");
 
-                if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) { // increased time to allow for motor to spin up
+                if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) { // increased time to allow for motor to spin up
                     follower.setMaxPower(PATH_POWER_STANDARD); //reset to normal speed
                     setTrayPosition(TRAY_POS_2_SCORE);
 
