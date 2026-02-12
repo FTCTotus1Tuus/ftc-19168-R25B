@@ -245,8 +245,8 @@ public class TrayFSM {
                     SlotState accepted = (countPurple >= countGreen) ? SlotState.PURPLE : SlotState.GREEN;
                     // Ball detected reliably — stop intake and record it, but wait before rotating so the
                     // ball can settle into the slot.
-                    rubberBands.setPower(0.0);
-                    topIntake.setPower(0.0);
+                    //rubberBands.setPower(0.0);
+                    //topIntake.setPower(0.0);
                     //leftIntake.setPower(0.0);
                     //rightIntake.setPower(0.0);
                     slots[currentSlotIndex] = accepted;
@@ -265,8 +265,8 @@ public class TrayFSM {
                 } else if (!WAIT_FOR_ARTIFACT && timer.seconds() - stateStartTime >= INTAKE_TIMEOUT) {
                      // Timeout behavior only used when waitForArtifact is false.
                      // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
-                     rubberBands.setPower(0.0);
-                     topIntake.setPower(0.0);
+                    //rubberBands.setPower(0.0);
+                    //topIntake.setPower(0.0);
                     //leftIntake.setPower(0.0);
                     //rightIntake.setPower(0.0);
                      slots[currentSlotIndex] = SlotState.EMPTY;
