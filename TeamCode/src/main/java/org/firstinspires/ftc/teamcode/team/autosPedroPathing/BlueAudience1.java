@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.team.autosPedroPathing;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 
 @Autonomous(name = "Blue Audience 6", group = "Pedro:Blues", preselectTeleOp = "TeleopFSM")
 @Configurable
+@Config
 public class BlueAudience1 extends DarienOpModeFSM {
     private TelemetryManager panelsTelemetry;   // Panels Telemetry instance
     public Follower follower;                   // Pedro Pathing follower instance
@@ -37,7 +39,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
     public static double BALL_INTAKE_DELAY = 1.5;
     public static double SHOTGUN_SPINUP_DELAY = 1.0;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
-    public static double SHOOT_TRIPLE_TIMEOUT = 5.5;
+    public static double SHOOT_TRIPLE_TIMEOUT = 7.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -82,6 +84,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
         targetGoalId = APRILTAG_ID_GOAL_BLUE;
         // Set the initial tray position immediately.
         setTrayPosition(TRAY_POS_1_SCORE);
+        topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
 
         // --- MAIN AUTONOMOUS LOOP ---
         while (opModeIsActive() && !isStopRequested()) {
@@ -139,7 +142,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 9.000), new Pose(56.000, 18.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(112))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(113))
                     .build();
 
             IntakePosition = follower
@@ -147,7 +150,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 18.000), new Pose(44.500, 35.750))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(112), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(113), Math.toRadians(180))
                     .build();
 
             Intake1 = follower
@@ -183,7 +186,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                                     new Pose(56.000, 18.000)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(117))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113))
                     .build();
 
             Parking = follower
@@ -191,7 +194,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(56.000, 18.000), new Pose(56.000, 29.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(117), Math.toRadians(90))
+                    .setLinearHeadingInterpolation(Math.toRadians(113), Math.toRadians(90))
                     .build();
         }
     }
@@ -212,7 +215,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 // Set the initial tray position
                 TrayServo.setPosition(TRAY_POS_1_SCORE);
                 tagFSM.start(getRuntime());
-                follower.setMaxPower(PATH_POWER_STANDARD); //normal speed
+                follower.setMaxPower(PATH_POWER_STANDARD * .75); //normal speed
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) {
 
                     telemetry.addLine("Case " + pathState + ": exiting");
@@ -226,6 +229,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ":");
 
                 tagFSM.update(getRuntime(), true, telemetry);
+                follower.setMaxPower(PATH_POWER_STANDARD); //normal speed
 
                 if ((tagFSM.isDone()) || pathTimer.getElapsedTimeSeconds() > TIMEOUT_APRILTAG_DETECTION) {
                     aprilTagDetections = tagFSM.getDetections();
@@ -293,7 +297,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
 
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
 
-                    setTrayPosition(TRAY_POS_2_INTAKE);
+                    setTrayPosition(TRAY_POS_1_INTAKE);
                     follower.followPath(paths.Intake2, true);
                     setPathState(pathState + 1);
                 }
@@ -304,7 +308,7 @@ public class BlueAudience1 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Intaking ball 3p");
                 if (!follower.isBusy() && pathTimer.getElapsedTimeSeconds() > BALL_INTAKE_DELAY) {
 
-                    setTrayPosition(TRAY_POS_1_INTAKE);
+                    setTrayPosition(TRAY_POS_2_INTAKE);
                     follower.followPath(paths.Intake3, true);
                     setPathState(pathState + 1);
                 }
