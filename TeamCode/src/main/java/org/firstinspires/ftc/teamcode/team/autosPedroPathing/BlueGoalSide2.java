@@ -250,7 +250,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                             new BezierLine(
                                     new Pose(26.000, 60.000),
 
-                                    new Pose(47.224, 110)
+                                    new Pose(47.224, 114)
                             )
                     ).setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(154))
 
