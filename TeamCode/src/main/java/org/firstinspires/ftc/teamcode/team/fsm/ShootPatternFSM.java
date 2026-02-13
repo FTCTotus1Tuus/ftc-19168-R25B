@@ -46,13 +46,21 @@ public class ShootPatternFSM {
     }
 
     public void updateShootPattern(double currentTime) {
-        if (!nbShootingActive || aprilTagDetections == null || aprilTagDetections.isEmpty()) return;
+        if (!nbShootingActive) return;
 
-        AprilTagDetection detection = aprilTagDetections.get(0); // Only use first detection for motif
+        int switchselector = 0;
+
+        if (aprilTagDetections == null || aprilTagDetections.isEmpty()) {
+            // If the camera is not working or not detecting apriltags, go to default motif.
+        } else {
+            AprilTagDetection detection = aprilTagDetections.get(0); // Only use first detection for motif
+            switchselector = detection.id;
+        }
+
         double[] motif = null;
         // Motif order: 1=TRAY_POS_1_SCORE, 2=TRAY_POS_2_SCORE, 3=TRAY_POS_3_SCORE
         //WORKING WHEN GREEN IN 2
-        switch (detection.id) {
+        switch (switchselector) {
             case 21:
                 motif = new double[]{DarienOpModeFSM.TRAY_POS_2_SCORE, DarienOpModeFSM.TRAY_POS_1_SCORE, DarienOpModeFSM.TRAY_POS_3_SCORE_GPP};
                 break; // GPP
