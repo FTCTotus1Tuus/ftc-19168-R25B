@@ -150,7 +150,7 @@ public class RedGoalSide2 extends DarienOpModeFSM {
 
                                     new Pose(96.766, 96.443)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(110), Math.toRadians(42))
+                    ).setLinearHeadingInterpolation(Math.toRadians(110), Math.toRadians(40))
 
                     .build();
 
@@ -160,7 +160,7 @@ public class RedGoalSide2 extends DarienOpModeFSM {
                                     new Pose(85.898, 89.916),
                                     new Pose(100.500, 84.305)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(42), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(40), Math.toRadians(0))
 
                     .build();
 
