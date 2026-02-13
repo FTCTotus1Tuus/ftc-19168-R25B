@@ -148,7 +148,7 @@ public class RedAudience2 extends DarienOpModeFSM {
                                     new Pose(88.000, 18.000)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(69))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(67))
                     .build();
 
             IntakePosition = follower
@@ -158,7 +158,7 @@ public class RedAudience2 extends DarienOpModeFSM {
                                     new Pose(88.000, 18.000),
                                     new Pose(102.000, 36.0))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(69), Math.toRadians(0))
+                    .setLinearHeadingInterpolation(Math.toRadians(67), Math.toRadians(0))
                     .build();
 
             Intake1 = follower.pathBuilder().addPath(
@@ -195,24 +195,24 @@ public class RedAudience2 extends DarienOpModeFSM {
                                     new Pose(88.000, 18.000)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(69))
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(65))
                     .build();
 
             IntakePosition2 = follower.pathBuilder().addPath(
                             new BezierLine(
                                     new Pose(88.000, 18.000),
 
-                                    new Pose(100.500, 60.000)
+                                    new Pose(97, 62)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(63), Math.toRadians(0))
+                    ).setLinearHeadingInterpolation(Math.toRadians(65), Math.toRadians(0))
 
                     .build();
 
             IntakeBall4p = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(100.500, 60.000),
+                                    new Pose(97, 62),
 
-                                    new Pose(108.000, 60.000)
+                                    new Pose(107.000, 60.000)
                             )
                     ).setTangentHeadingInterpolation()
 
@@ -220,9 +220,9 @@ public class RedAudience2 extends DarienOpModeFSM {
 
             IntakeBall5g = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(108.000, 60.000),
+                                    new Pose(107.000, 60.000),
 
-                                    new Pose(113.000, 60.000)
+                                    new Pose(112.000, 60.000)
                             )
                     ).setTangentHeadingInterpolation()
 
@@ -230,9 +230,9 @@ public class RedAudience2 extends DarienOpModeFSM {
 
             IntakeBall6p = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(113.000, 60.000),
+                                    new Pose(112.000, 60.000),
 
-                                    new Pose(118.000, 60.000)
+                                    new Pose(117.000, 60.000)
                             )
                     ).setTangentHeadingInterpolation()
 
@@ -240,11 +240,11 @@ public class RedAudience2 extends DarienOpModeFSM {
 
             ShootingPosition3 = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(118.000, 60.000),
+                                    new Pose(117.000, 60.000),
 
                                     new Pose(88.000, 18.000)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(63))
+                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(65))
 
                     .build();
 
@@ -253,7 +253,7 @@ public class RedAudience2 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(88.000, 18.000), new Pose(88.000, 31.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(69), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(65), Math.toRadians(180))
                     .build();
         }
     }
