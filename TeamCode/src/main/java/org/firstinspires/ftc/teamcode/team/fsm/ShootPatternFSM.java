@@ -31,7 +31,7 @@ public class ShootPatternFSM {
     private boolean nbShootingActive = false;
     private double shootPower = 0;
     private boolean shotStarted = false;
-    public static double TRAY_DELAY = 1.25;
+    public static double TRAY_DELAY = 1.35;
     public static double SPINUP_DELAY = 0;
 
     public void startShootPattern(ArrayList<AprilTagDetection> detections, double currentTime, double shootingPower) {

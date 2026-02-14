@@ -133,8 +133,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     public final int APRILTAG_ID_GOAL_BLUE = 20;
     public final int APRILTAG_ID_GOAL_RED = 24;
-    public static double TURRET_OFFSET_RED = 0.0;
-    public static double TURRET_OFFSET_BLUE = 0.0;
+    public static double TURRET_OFFSET_RED = 0.005;
+    public static double TURRET_OFFSET_BLUE = 0.01;
 
     // CAMERA EXPOSURE/GAIN SETTINGS FOR APRILTAG DETECTION
     // Low exposure (5-6ms) with high gain reduces motion blur and improves far-distance detection
@@ -300,7 +300,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
         // Set manual exposure and gain to reduce motion blur and improve detection at distance
         // This is especially important for detecting AprilTags from far positions
-        setManualExposure(APRILTAG_EXPOSURE_MS, APRILTAG_GAIN);
+        //setManualExposure(APRILTAG_EXPOSURE_MS, APRILTAG_GAIN);
     }
 
     /**

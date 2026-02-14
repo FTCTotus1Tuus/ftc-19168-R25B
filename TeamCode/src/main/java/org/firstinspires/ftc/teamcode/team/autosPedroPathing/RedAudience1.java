@@ -36,7 +36,7 @@ public class RedAudience1 extends DarienOpModeFSM {
     //public static double SHOT_GUN_POWER_UP = 0.6*.9;
 
     public static double INTAKE_RUBBER_BANDS_DELAY = 0.2;
-    public static double BALL_INTAKE_DELAY = 1.0;
+    public static double BALL_INTAKE_DELAY = 1.15;
     public static double SHOTGUN_SPINUP_DELAY = 1.0;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
     public static double SHOOT_TRIPLE_TIMEOUT = 7.0;
@@ -141,9 +141,13 @@ public class RedAudience1 extends DarienOpModeFSM {
             ShootingPosition = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(88.000, 9.000), new Pose(88.000, 18.000))
+                            new BezierLine(
+                                    new Pose(88.000, 9.000),
+
+                                    new Pose(88.000, 18.000)
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(69))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(67))
                     .build();
 
             IntakePosition = follower
@@ -151,7 +155,7 @@ public class RedAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(88.000, 18.000), new Pose(102.000, 36.0))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(69), Math.toRadians(0))
+                    .setLinearHeadingInterpolation(Math.toRadians(67), Math.toRadians(0))
                     .build();
 
             Intake1 = follower
@@ -187,7 +191,7 @@ public class RedAudience1 extends DarienOpModeFSM {
                                     new Pose(88.000, 18.000)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(69))
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(65))
                     .build();
 
             Parking = follower
@@ -195,7 +199,7 @@ public class RedAudience1 extends DarienOpModeFSM {
                     .addPath(
                             new BezierLine(new Pose(88.000, 18.000), new Pose(88.000, 31.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(69), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(65), Math.toRadians(180))
                     .build();
         }
     }
@@ -321,7 +325,7 @@ public class RedAudience1 extends DarienOpModeFSM {
 
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) { // increased time to allow for motor to spin up
                     follower.setMaxPower(PATH_POWER_STANDARD); //reset to normal speed
-                    setTrayPosition(TRAY_POS_2_SCORE);
+
 
                     shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP_FAR);
                     follower.followPath(paths.ShootingPosition2, true);
@@ -335,6 +339,7 @@ public class RedAudience1 extends DarienOpModeFSM {
 
 
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > SHOTGUN_SPINUP_DELAY) {
+                    setTrayPosition(TRAY_POS_2_SCORE);
                     shootPatternFSM.startShootPattern(aprilTagDetections, getRuntime(), SHOT_GUN_POWER_UP_FAR);
                     setPathState(pathState + 1);
                 }

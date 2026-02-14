@@ -34,14 +34,15 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
     private Paths paths;                        // Paths
     private Timer pathTimer, opmodeTimer;
 
-    public static double PATH_POWER_STANDARD = 0.9;
-    public static double PATH_POWER_SLOW = 0.3;
+    public static double PATH_POWER_STANDARD = 1.0;
+    public static double PATH_POWER_SLOW = 0.4;
+
 
     public static double INTAKE_RUBBER_BANDS_DELAY = 0.2;
-    public static double BALL_INTAKE_DELAY = 1.5;
-    public static double SHOTGUN_SPINUP_DELAY = 1.0;
+    public static double BALL_INTAKE_DELAY = 1.15;
+    public static double SHOTGUN_SPINUP_DELAY = 0.3;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
-    public static double SHOOT_TRIPLE_TIMEOUT = 5.5;
+    public static double SHOOT_TRIPLE_TIMEOUT = 7.0;
 
     @Override
     public void runOpMode() throws InterruptedException {

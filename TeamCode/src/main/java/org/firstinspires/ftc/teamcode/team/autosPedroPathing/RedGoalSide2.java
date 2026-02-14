@@ -44,7 +44,7 @@ public class RedGoalSide2 extends DarienOpModeFSM {
     public static double BALL_INTAKE_DELAY = 1.15;
     public static double SHOTGUN_SPINUP_DELAY = 0.3;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
-    public static double SHOOT_TRIPLE_TIMEOUT = 5.5;
+    public static double SHOOT_TRIPLE_TIMEOUT = 7.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -170,7 +170,8 @@ public class RedGoalSide2 extends DarienOpModeFSM {
 
                                     new Pose(106.000, 84.305)
                             )
-                    ).setTangentHeadingInterpolation()
+                    )
+                    .setTangentHeadingInterpolation()
 
                     .build();
 
@@ -190,8 +191,8 @@ public class RedGoalSide2 extends DarienOpModeFSM {
 
                                     new Pose(116.000, 84.305)
                             )
-                    ).setTangentHeadingInterpolation()
-
+                    )
+                    .setTangentHeadingInterpolation()
                     .build();
 
             ShootingPosition2 = follower.pathBuilder().addPath(
@@ -339,7 +340,7 @@ public class RedGoalSide2 extends DarienOpModeFSM {
                 }
                 break;
 
-            case 6: //apples
+            case 6:
                 telemetry.addLine("Case " + pathState + ": Wait for Path3, then start Path4");
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > STANDARD_PATH_TIMEOUT) {
                     telemetry.addLine("Case " + pathState + ": Move forward to pick up artifact 1p");

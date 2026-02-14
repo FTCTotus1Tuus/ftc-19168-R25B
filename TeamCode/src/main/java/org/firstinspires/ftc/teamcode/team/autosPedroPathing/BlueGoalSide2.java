@@ -44,7 +44,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
     public static double BALL_INTAKE_DELAY = 1.15;
     public static double SHOTGUN_SPINUP_DELAY = 0.3;
     public static double STANDARD_PATH_TIMEOUT = 2.0;
-    public static double SHOOT_TRIPLE_TIMEOUT = 5.5;
+    public static double SHOOT_TRIPLE_TIMEOUT = 7.0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -88,7 +88,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
 
         targetGoalId = APRILTAG_ID_GOAL_BLUE;
         // Set the initial tray position immediately.
-        TrayServo.setPosition(TRAY_POS_1_SCORE);
+        //TrayServo.setPosition(TRAY_POS_2_SCORE);
 
 
         // --- MAIN AUTONOMOUS LOOP ---
@@ -270,7 +270,7 @@ public class BlueGoalSide2 extends DarienOpModeFSM {
                 telemetry.addLine("Case " + pathState + ": Start Path1");
 
                 // Set the initial tray position
-                TrayServo.setPosition(TRAY_POS_1_SCORE);
+                TrayServo.setPosition(TRAY_POS_2_SCORE);
                 follower.setMaxPower(PATH_POWER_STANDARD);
                 shootArtifactFSM.shotGun(SHOT_GUN_POWER_UP);
                 follower.followPath(paths.ReadAprilTag);
