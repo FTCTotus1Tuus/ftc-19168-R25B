@@ -12,15 +12,24 @@ public class TurretFSM {
     }
 
     /**
+     * Effective turret degrees of rotation per full servo unit (0.0 to 1.0).
+     * The 5-rotation servo spans 1800 servo-degrees across 0..1.
+     * The 6:1 turret gear reduces that to 1800/6 = 300 turret-degrees per servo unit.
+     */
+    private static final double TURRET_DEG_PER_SERVO_UNIT =
+            (double) DarienOpModeFSM.FIVE_ROTATION_SERVO_SPAN_DEG / DarienOpModeFSM.RATIO_BETWEEN_TURRET_GEARS; // = 300
+
+    /**
      * Get the current turret heading in degrees based on the servo position.
-     * Zero heading is straight ahead (forward motion of the robot)
-     * Positive degrees indicate left, negative degrees indicate right.
+     * Zero heading is straight ahead (forward motion of the robot).
+     * Positive degrees = left, negative degrees = right.
      * @return The turret heading in degrees.
      */
-    public double getTurretHeading(){
-        return -900 + DarienOpModeFSM.FIVE_ROTATION_SERVO_SPAN_DEG * opMode.currentTurretPosition;
+    public double getTurretHeading() {
+        // (servo - center) * 300 deg/unit gives turret degrees offset from forward
+        return (opMode.currentTurretPosition - DarienOpModeFSM.TURRET_POSITION_CENTER)
+                * TURRET_DEG_PER_SERVO_UNIT;
     }
-//todo: work on this math, The turret has a specific range of motion from 0 currently around +-30 degrees from center, it is PROBABLY doing the calculations based on +-180 degrees as if it were those 30 degrees
 
     /**
      * Calculate the turret aiming angle based on robot odometry and goal position.
@@ -68,13 +77,14 @@ public class TurretFSM {
      * @return Servo position (0.0 to 1.0), clamped to [TURRET_ROTATION_MAX_RIGHT, TURRET_ROTATION_MAX_LEFT]
      */
     public double calculateServoPositionFromAngle(double angleDegrees) {
-        // Convert angle to servo position using the turret's servo math
-        // The turret spans from -900 to +900 degrees across its full servo range
-        // Center position (0 degrees) = TURRET_POSITION_CENTER (0.5)
-
-        // Calculate raw servo position based on angle offset from center
+        // Convert turret angle to servo position.
+        // TURRET_DEG_PER_SERVO_UNIT = 300 deg/unit (1800 servo-degrees / 6:1 gear ratio).
+        // So: servo = center + (turretDegrees / 300)
+        // Example: 30 deg left  → 0.5 + 30/300 = 0.60  (within left clamp 0.63) ✓
+        //          45 deg left  → 0.5 + 45/300 = 0.65  → clamped to 0.63        ✓
+        //          20 deg right → 0.5 - 20/300 = 0.433 (within right clamp 0.35) ✓
         double servoPosition = DarienOpModeFSM.TURRET_POSITION_CENTER +
-                (angleDegrees / DarienOpModeFSM.FIVE_ROTATION_SERVO_SPAN_DEG);
+                (angleDegrees / TURRET_DEG_PER_SERVO_UNIT);
 
         // Clamp to servo physical limits to prevent damage
         servoPosition = Math.max(DarienOpModeFSM.TURRET_ROTATION_MAX_RIGHT,

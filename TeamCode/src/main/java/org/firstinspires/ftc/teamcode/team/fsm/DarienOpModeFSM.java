@@ -110,9 +110,20 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double INTAKE_INTAKE_ROLLER_POWER = 1;
     public static double OUTPUT_INTAKE_ROLLER_POWER = 0.2;
     public static double TURRET_ROTATION_INCREMENT = 0.002;
-    public static double TURRET_ROTATION_MAX_LEFT = 0.63;
-    public static double TURRET_ROTATION_MAX_RIGHT = 0.35;
     public static double TURRET_POSITION_CENTER = 0.5;
+
+    // Turret range of motion in turret degrees (physically measurable on the robot).
+    // Positive = CCW from center (left), Negative = CW from center (right).
+    // Change these when hardware changes; servo clamp limits are derived automatically.
+    public static double TURRET_MAX_DEG_LEFT = 39.0;  // degrees CCW from center  (~30 deg current hardware)
+    public static double TURRET_MAX_DEG_RIGHT = 45.0;  // degrees CW  from center  (~20 deg current hardware)
+
+    // Servo clamp limits derived from degree limits.
+    // Formula: servo = center ± (degrees / (FIVE_ROTATION_SERVO_SPAN_DEG / RATIO_BETWEEN_TURRET_GEARS))
+    //   = 0.5 ± (degrees / 300)
+    // These are computed at runtime so they always stay in sync with the degree constants above.
+    public static double TURRET_ROTATION_MAX_LEFT = TURRET_POSITION_CENTER + TURRET_MAX_DEG_LEFT / ((double) FIVE_ROTATION_SERVO_SPAN_DEG / RATIO_BETWEEN_TURRET_GEARS);
+    public static double TURRET_ROTATION_MAX_RIGHT = TURRET_POSITION_CENTER - TURRET_MAX_DEG_RIGHT / ((double) FIVE_ROTATION_SERVO_SPAN_DEG / RATIO_BETWEEN_TURRET_GEARS);
 
     // PIDF Constants for DcMotorEx.setVelocityPIDFCoefficients()
     public static double EJECTION_P=15;
