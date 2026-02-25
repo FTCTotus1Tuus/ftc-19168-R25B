@@ -57,6 +57,10 @@ public class TeleOpFSM extends DarienOpModeFSM {
     private enum TurretStates {MANUAL, CAMERA, ODOMETRY}
     private TurretStates turretState = TurretStates.MANUAL;
 
+    private enum ShootingPowerModes {MANUAL, ODOMETRY}
+
+    private ShootingPowerModes shootingPowerMode = ShootingPowerModes.MANUAL;
+
     // Turret fallback tracking
     private double lastCameraDetectionTime = 0;  // Timestamp of last successful camera detection
 
@@ -335,6 +339,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 //TURRET STATE CHANGE CONTROLS
                 if (gamepad2.left_trigger > 0.1) {
                     turretState = TurretStates.ODOMETRY;
+                    shootingPowerMode = ShootingPowerModes.ODOMETRY;
                 }
 
                 if (gamepad2.right_trigger > 0.1) {
@@ -432,13 +437,25 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
             //CONTROL: EJECTION MOTORS
             if (!trayFSM.isAutoIntakeRunning()) {
+                //ODOMETRY BASED SHOOT POWER
+                if (shootingPowerMode == ShootingPowerModes.ODOMETRY) {
+                    if (robotY <= 48) {
+                        shotgunPowerLatch = ShotgunPowerLevel.HIGH;
+                    } else {
+                        shotgunPowerLatch = ShotgunPowerLevel.LOW;
+                    }
+                }
+
                 //Latch control
                 if (gamepad2.right_stick_y < -.05) {
                     shotgunPowerLatch = ShotgunPowerLevel.HIGH;
+                    shootingPowerMode = ShootingPowerModes.MANUAL;
                 } else if (gamepad2.right_stick_y > 0.05) {
                     shotgunPowerLatch = ShotgunPowerLevel.LOW;
+                    shootingPowerMode = ShootingPowerModes.MANUAL;
                 } else if (gamepad2.rightStickButtonWasPressed()) {
                     shotgunPowerLatch = ShotgunPowerLevel.OFF;
+                    shootingPowerMode = ShootingPowerModes.MANUAL;
                 }
                 switch (shotgunPowerLatch) {
                     case OFF:
@@ -455,34 +472,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                         telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
                         break;
                 }
-                /*
-                if (shotgunPowerLatch == DarienOpModeFSM.shotgunPowerLevel.HIGH) {
-                    shotgunFSM.toPowerUpFar();
-                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM);
-                } else if (shotgunPowerLatch == DarienOpModeFSM.shotgunPowerLevel.OFF){
-                    shotgunFSM.toOff();
-                    telemetry.addData("Requested ShotGun RPM", 0);
-                } else {
-                    shotgunFSM.toPowerUp();
-                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
-                }
 
-                 */
-
-                /*
-                if (gamepad2.right_stick_y > 0.05) {
-                    // close shot
-                    shotgunFSM.toPowerUp();
-                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
-                    isHighPower = false;
-                } else if (gamepad2.right_stick_y < -0.05 && isHighPower) {
-                    // far shot
-                    shotgunFSM.toPowerUpFar();
-                    telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM);
-                    isHighPower = true;
-                }
-
-                 */
             } else {
                 shotgunFSM.toOff();
             }
