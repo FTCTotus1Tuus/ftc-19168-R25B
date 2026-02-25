@@ -68,7 +68,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
     double targetServoPos = Double.NaN; // Convert heading → servo position
     double rawBearingDeg; // Stores detection.ftcPose.bearing;
 
-    double robotX, robotY, turretTargetAngle;
+    double robotX, robotY, robotHeadingRadians;
 
     // cameraOffsetX < 0 if camera is mounted on the LEFT
    // public static double cameraOffsetX = 0.105; // in centimeter, positive is right, negative is left
@@ -205,13 +205,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 if ("RED".equals(autoAlliance)) {
                     resetX = HUMAN_PLAYER_RED_X + ROBOT_CENTER_OFFSET_X;
                     resetY = HUMAN_PLAYER_RED_Y + ROBOT_CENTER_OFFSET_Y;
-                    resetHdeg = 45; // Front-first into red corner: robot faces -X/-Y direction (away from field center)
-                    //todo: FIX STARTING ANGLE FOR RED HUMAN PLAYER
+                    resetHdeg = 180; // Front-first into red corner: robot drives straight into red wall (-X direction)
                     telemetry.addLine("ODOMETRY RESET: Red Human Player Position (0, 0)");
                 } else if ("BLUE".equals(autoAlliance)) {
                     resetX = HUMAN_PLAYER_BLUE_X - ROBOT_CENTER_OFFSET_X;
                     resetY = HUMAN_PLAYER_BLUE_Y + ROBOT_CENTER_OFFSET_Y;
-                    resetHdeg = 0;
+                    resetHdeg = 0; // Front-first into blue corner: robot drives straight into blue wall (+X direction)
                     telemetry.addLine("ODOMETRY RESET: Blue Human Player Position (144, 0)");
                 } /*else {
                     // Default to (0,0) if alliance unknown
@@ -230,7 +229,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 ));
 
                 // Update the follower's pose to match
-                follower.setPose(new Pose(resetX, resetY, resetHdeg));
+                follower.setPose(new Pose(resetX, resetY, Math.toRadians(resetHdeg)));
 
                 telemetry.addData("New Odometry Position", String.format("(%.1f, %.1f, %.1f)", resetX, resetY, resetHdeg));
             }
@@ -347,7 +346,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     turretState = TurretStates.CAMERA;
                     startReadingGoalId();
                 }
-//todo: set turret state to camera when gamepad2.x or b (red and blue) are pressed becasue turret state says manual
 
                 telemetry.addData("shotStarted", shotStarted);
                 telemetry.addData("tripleShotStarted", tripleShotStarted);
@@ -396,9 +394,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
             } //macro controls
 
             // Get current robot pose from follower
-            double robotX = follower.getPose().getX();
-            double robotY = follower.getPose().getY();
-            double robotHeadingRadians = follower.getPose().getHeading();
+            robotX = follower.getPose().getX();
+            robotY = follower.getPose().getY();
+            robotHeadingRadians = follower.getPose().getHeading();
 
             //turret rotation
             if (gamepad2.left_stick_x <=-0.05) {    //turn turret clockwise
@@ -428,8 +426,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     targetGoalY = DarienOpModeFSM.GOAL_BLUE_Y;
                 }
 
-                // Calculate raw angle for telemetry, then clamp via servo conversion
-                double targetTurretAngleDeg = turretFSM.calculateTurretAngleFromOdometry( //prev from change turretAnglefromodo
+                // Calculate raw angle, then clamp via servo conversion
+                double targetTurretAngleDeg = turretFSM.calculateTurretAngleFromOdometry(
                         targetGoalX, targetGoalY, robotX, robotY, robotHeadingRadians);
                 double targetServoPos = turretFSM.calculateServoPositionFromAngle(targetTurretAngleDeg);
 
@@ -502,9 +500,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
             // Turret Aiming Mode Telemetry
             telemetry.addData("Turret State", turretState);
-            // robotX = follower.getPose().getX();
-            // robotY = follower.getPose().getY();
-            // robotHeadingRadians = follower.getPose().getHeading();
 
             double targetGoalX, targetGoalY;
             if ("RED".equals(autoAlliance)) {
@@ -514,11 +509,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 targetGoalX = DarienOpModeFSM.GOAL_BLUE_X;
                 targetGoalY = DarienOpModeFSM.GOAL_BLUE_Y;
             }
-            turretTargetAngle = turretFSM.calculateTurretAngleFromOdometry(
-                    targetGoalX, targetGoalY, robotX, robotY, robotHeadingRadians);
-
-
-
 
             /*
             telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",
@@ -533,8 +523,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
             telemetry.addData("Target AprilTag ID", targetGoalTagId);
             // telemetry.addData("Time Since Last Camera Detection (ms)",
             //       (getRuntime() - lastCameraDetectionTime) * 1000);
-            telemetry.addData("Robot Pos (X,Y)", String.format("%.1f, %.1f", robotX, robotY));
-            telemetry.addData("Odometry Bearing (deg)", String.format("%.1f", turretTargetAngle));
+            telemetry.addData("Odometry Pos (X,Y)", String.format("%.1f, %.1f", robotX, robotY));
+            telemetry.addData("Odometry Bearing (deg)", String.format("%.1f", Math.toDegrees(robotHeadingRadians)));
             displayTurretTelemetry(yaw, rawBearingDeg, currentHeadingDeg, currentTurretPosition, targetServoPos, range);
             telemetry.update();
         } //while opModeIsActive
@@ -567,11 +557,11 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 detection = aprilTagDetections.get(0);
                 if (detection.id == targetGoalTagId && detection.ftcPose != null) {
                     telemetry.addLine("Goal Detection: ALIGNING TURRET TO GOAL " + targetGoalTagId);
-                    yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
-                    range = detection.ftcPose.range; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
+                    //yaw = detection.ftcPose.yaw; //  REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
+                    //range = detection.ftcPose.range; //  REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
                     // Current turret heading (degrees)
-                    currentHeadingDeg = turretFSM.getTurretHeading(); // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
+                    //currentHeadingDeg = turretFSM.getTurretHeading(); //  REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
                     // Camera-relative bearing to AprilTag (degrees)
                     rawBearingDeg = detection.ftcPose.bearing;
@@ -604,12 +594,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
     }
 
     private void displayTurretTelemetry(double yaw, double rawBearingDeg, double currentHeadingDeg, double currentTurretPosition, double targetServoPos, double distanceFromGoal) {
-        telemetry.addData("TURRET: yaw", yaw);
+        //telemetry.addData("TURRET: yaw", yaw);
         telemetry.addData("TURRET: Raw Bearing Deg (alpha)", rawBearingDeg);
-        telemetry.addData("TURRET: currentHeadingDeg (C0)", currentHeadingDeg);
+        //telemetry.addData("TURRET: currentHeadingDeg (C0)", currentHeadingDeg);
         telemetry.addData("TURRET: Current Turret Pos", currentTurretPosition);
         telemetry.addData("TURRET: Target Turret Pos", targetServoPos);
-        telemetry.addData("TURRET: range", distanceFromGoal);
+        //telemetry.addData("TURRET: range", distanceFromGoal);
         // DO NOT ADD telemetry.update() HERE
     }
 
