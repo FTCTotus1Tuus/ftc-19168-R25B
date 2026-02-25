@@ -155,8 +155,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
             leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
             rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
 
-            if (isReadingAprilTag) {
-                updateReadingGoalId();
+            if (turretState == TurretStates.CAMERA) {
+                if (!isReadingAprilTag) {
+                    startReadingGoalId();
+                } else {
+                    updateReadingGoalId();
+                }
             }
 
             // -----------------
@@ -239,28 +243,23 @@ public class TeleOpFSM extends DarienOpModeFSM {
             // GAMEPAD2 CONTROLS
             // -----------------
 
+            //SET ALLIANCE COLOR CONTROL
+            if (gamepad2.b && !isReadingAprilTag) {
+                // ALIGN TO RED GOAL
+                autoAlliance = "RED";
+                targetGoalTagId = APRILTAG_ID_GOAL_RED;
+                telemetry.addLine("ALLIANCE SET TO RED!");
+            } else if (gamepad2.x && !isReadingAprilTag) {
+                // ALIGN TO BLUE GOAL
+                autoAlliance = "BLUE";
+                targetGoalTagId = APRILTAG_ID_GOAL_BLUE;
+                telemetry.addLine("ALLIANCE SET TO BLUE!");
+            }
+
             if (!shotStarted && !tripleShotStarted) {
                 // -----------------
                 // MANUAL CONTROLS: only allowed when not running macros
                 // -----------------
-
-                //CONTROL: POINT TURRET TO GOAL
-                if (gamepad2.b && !isReadingAprilTag) {
-                    // ALIGN TO RED GOAL
-                    autoAlliance = "RED";
-                    startReadingGoalId();
-                    targetGoalTagId = APRILTAG_ID_GOAL_RED;
-                    telemetry.addLine("ALIGN TURRET TO RED!");
-                } else if (gamepad2.x && !isReadingAprilTag) {
-                    // ALIGN TO BLUE GOAL
-                    autoAlliance = "BLUE";
-                    startReadingGoalId();
-                    targetGoalTagId = APRILTAG_ID_GOAL_BLUE;
-                    telemetry.addLine("ALIGN TURRET TO BLUE!");
-                } else if (isReadingAprilTag) {
-                    updateReadingGoalId();
-                } // end if (isReadingAprilTag)
-
 
                 //CONTROL: ELEVATOR
                 if (gamepad2.left_bumper) {
@@ -320,21 +319,17 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     if (trayFSM.isAutoIntakeRunning()) {
                         trayFSM.toggleAutoIntake();
                     }
-                    //startReadingGoalId();
                     shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP_FAR);
                     tripleShotStartTime = getRuntime();
                     tripleShotStarted = true;
-                    //turretState = TurretStates.CAMERA;
                 } else if (gamepad2.right_bumper) {
                     //stop auto intake if running
                     if (trayFSM.isAutoIntakeRunning()) {
                         trayFSM.toggleAutoIntake();
                     }
-                    //startReadingGoalId();
                     shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP);
                     tripleShotStartTime = getRuntime();
                     tripleShotStarted = true;
-                    //turretState = TurretStates.CAMERA;
                 }
 
                 //TURRET STATE CHANGE CONTROLS
@@ -371,9 +366,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 else if (tripleShotStarted) {
                     // ONLY UPDATE IF IN MACRO CONTROL MODE
                     shootTripleFSM.updateShootTriple(getRuntime());
-                    if (!isReadingAprilTag && turretState == TurretStates.CAMERA) {
-                        startReadingGoalId();
-                    }
                     if (shootTripleFSM.isDone() || getRuntime() - tripleShotStartTime >= 10) {
                         setLedOff();
                         TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_3_INTAKE);
