@@ -133,6 +133,56 @@ public class TeleOpFSM extends DarienOpModeFSM {
             turretOffset = TURRET_OFFSET_RED;
         }
 
+        // Load saved odometry position from auto (if available)
+        boolean hasAutoPosition = prefs.contains("auto_final_x");
+        if (hasAutoPosition) {
+            double autoX = prefs.getFloat("auto_final_x", 0f);
+            double autoY = prefs.getFloat("auto_final_y", 0f);
+            double autoHeadingRad = prefs.getFloat("auto_final_heading", 0f);
+
+            // Set odometry position from auto
+            odo.setPosition(new Pose2D(
+                    DistanceUnit.INCH,
+                    autoX,
+                    autoY,
+                    AngleUnit.RADIANS,
+                    autoHeadingRad
+            ));
+
+            // Update follower pose to match
+            follower.setPose(new Pose(autoX, autoY, autoHeadingRad));
+
+            telemetry.addLine("=== ODOMETRY LOADED FROM AUTO ===");
+            telemetry.addData("Loaded Position", String.format("X=%.1f, Y=%.1f, H=%.1f°",
+                    autoX, autoY, Math.toDegrees(autoHeadingRad)));
+        } else {
+            // No auto position saved - default to human player position based on alliance
+            double resetX = 0, resetY = 0, resetHdeg = 0;
+            if ("RED".equals(autoAlliance)) {
+                resetX = HUMAN_PLAYER_RED_X + ROBOT_CENTER_OFFSET_X;
+                resetY = HUMAN_PLAYER_RED_Y + ROBOT_CENTER_OFFSET_Y;
+                resetHdeg = 180; // Front-first into red corner
+            } else if ("BLUE".equals(autoAlliance)) {
+                resetX = HUMAN_PLAYER_BLUE_X - ROBOT_CENTER_OFFSET_X;
+                resetY = HUMAN_PLAYER_BLUE_Y + ROBOT_CENTER_OFFSET_Y;
+                resetHdeg = 0; // Front-first into blue corner
+            }
+
+            odo.setPosition(new Pose2D(
+                    DistanceUnit.INCH,
+                    resetX,
+                    resetY,
+                    AngleUnit.DEGREES,
+                    resetHdeg
+            ));
+
+            follower.setPose(new Pose(resetX, resetY, Math.toRadians(resetHdeg)));
+
+            telemetry.addLine("=== NO AUTO DATA - DEFAULT POSITION ===");
+            telemetry.addData("Default Position", String.format("X=%.1f, Y=%.1f, H=%.1f°",
+                    resetX, resetY, resetHdeg));
+        }
+
         waitForStart();
         if (isStopRequested()) return;
         //Start
