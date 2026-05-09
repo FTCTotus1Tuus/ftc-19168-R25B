@@ -13,12 +13,10 @@ import org.opencv.imgproc.Imgproc;
 
 @Config
 public class ImageProcess implements VisionProcessor {
-    private Mat workingMat1 = new Mat(), workingMat2 = new Mat(), workingMatRed = new Mat(), workingMatYellow = new Mat();
-    public static int minHueR = 0, minSaturationR = 40, minValueR = 0, maxHueR = 10, maxSaturationR = 260, maxValueR = 300,
-            minHueY = 15, minSaturationY = 245, minValueY = 110, maxHueY = 35, maxSaturationY = 255,
-            maxValueY = 255, frameWidth, frameHeight;
-
-    private double redCount, yellowCount;
+    private Mat workingMat1 = new Mat(), workingMat2 = new Mat(), workingMatPurple = new Mat(), workingMatGreen = new Mat();
+    public static int minHueP = 140, minSaturationP = 80, minValueP = 80, maxHueP = 170, maxSaturationP = 255, maxValueP = 255,
+            minHueG = 40, minSaturationG = 15, minValueG = 20, maxHueG = 90, maxSaturationG = 255, maxValueG = 255, frameWidth, frameHeight;
+    private double PurpleCount, GreenCount;
     private boolean lastResult;
 
     public boolean getLastResult() {
@@ -37,18 +35,18 @@ public class ImageProcess implements VisionProcessor {
         workingMat1 = frame.clone();
 
         Imgproc.cvtColor(workingMat1, workingMat2, Imgproc.COLOR_RGB2HSV);
-        Core.inRange(workingMat2, new Scalar(minHueR, minSaturationR, minValueR), new Scalar(maxHueR, maxSaturationR, maxValueR), workingMatRed);
-        Core.inRange(workingMat2, new Scalar(minHueY, minSaturationY, minValueY), new Scalar(maxHueY, maxSaturationY, maxValueY), workingMatYellow);
+        Core.inRange(workingMat2, new Scalar(minHueP, minSaturationP, minValueP), new Scalar(maxHueP, maxSaturationP, maxValueP), workingMatPurple);
+        Core.inRange(workingMat2, new Scalar(minHueG, minSaturationG, minValueG), new Scalar(maxHueG, maxSaturationG, maxValueG), workingMatGreen);
 
-        redCount = Core.countNonZero(workingMatRed);
-        yellowCount = Core.countNonZero(workingMatYellow);
+        PurpleCount = Core.countNonZero(workingMatPurple);
+        GreenCount = Core.countNonZero(workingMatGreen);
 
-        lastResult = redCount > yellowCount;
+        lastResult = PurpleCount > GreenCount;
 
         workingMat1.release();
         workingMat2.release();
-        workingMatRed.release();
-        workingMatYellow.release();
+        workingMatPurple.release();
+        workingMatGreen.release();
 
         return frame;
     }
