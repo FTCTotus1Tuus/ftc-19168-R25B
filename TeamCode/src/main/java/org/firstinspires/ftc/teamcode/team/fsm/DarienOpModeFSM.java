@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
+import org.firstinspires.ftc.teamcode.team.CircleFinder;
 import org.firstinspires.ftc.teamcode.team.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.team.MotorHelper;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -43,6 +44,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public ShotgunFSM shotgunFSM;
     public TurretFSM turretFSM;
     public MotorHelper MotorHelper;
+    public CircleFinder circleFinder;
 
     // AprilTag
     public ArrayList<AprilTagDetection> aprilTagDetections;
@@ -228,8 +230,9 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         ledLeftRed = hardwareMap.get(DigitalChannel.class, "LEDLeft2");
         setLedRed();
 
-
-        initAprilTag();
+        //CAMERA
+        //initAprilTag();
+        circleFinder = new CircleFinder(hardwareMap, telemetry);
 
         MotorHelper = new MotorHelper(telemetry, TICKS_PER_ROTATION);
 
@@ -241,6 +244,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         shootTripleFSM = new ShootTripleFSM(this);
         shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this, MotorHelper);
         turretFSM = new TurretFSM(this);
+
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position

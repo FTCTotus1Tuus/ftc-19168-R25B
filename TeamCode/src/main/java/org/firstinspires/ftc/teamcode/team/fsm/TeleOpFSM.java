@@ -25,6 +25,10 @@ import com.bylazar.telemetry.TelemetryManager;
 import android.content.SharedPreferences;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.vision.opencv.Circle;
+import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
+
+import java.util.List;
 
 @TeleOp(name = "TeleopFSM", group = "DriverControl")
 @Config
@@ -34,7 +38,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // INSTANCES
     private TelemetryManager panelsTelemetry;   // Panels Telemetry instance
     public Follower follower;                   // Pedro Pathing follower instance
-    private GoBildaPinpointDriver odo;          // Pinpoint odometry driver for position reset
+    private GoBildaPinpointDriver odo;// Pinpoint odometry driver for position reset
 
     // TUNING CONSTANTS
     public static double INTAKE_TIME = 1;
@@ -399,6 +403,32 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
                 telemetry.addData("shotStarted", shotStarted);
                 telemetry.addData("tripleShotStarted", tripleShotStarted);
+
+                //gamepad1 clicks dpad Right
+                if (gamepad1.dpadRightWasPressed()) {
+                    //robot detects nearest Purple ball and intakes it
+                    List<ColorBlobLocatorProcessor.Blob> blobs = circleFinder.colorLocator.getBlobs();
+
+                    ColorBlobLocatorProcessor.Util.filterByCriteria(
+                            ColorBlobLocatorProcessor.BlobCriteria.BY_CONTOUR_AREA,
+                            50, 20000, blobs);  // filter out very small blobs.
+
+                    ColorBlobLocatorProcessor.Util.filterByCriteria(
+                            ColorBlobLocatorProcessor.BlobCriteria.BY_CIRCULARITY,
+                            0.6, 1, blobs);     // filter out non-circular blobs.
+
+                    telemetry.addLine("Circularity Radius Center");
+
+                    // Display the Blob's circularity, and the size (radius) and center location of its circleFit.
+                    for (ColorBlobLocatorProcessor.Blob b : blobs) {
+
+                        Circle circleFit = b.getCircle();
+                        telemetry.addLine(String.format("%5.3f      %3d     (%3d,%3d)",
+                                                        b.getCircularity(), (int) circleFit.getRadius(), (int) circleFit.getX(), (int) circleFit.getY()));
+                    }
+                }
+                //gamepad1 clicks dpad Left
+                //robot detects nearest Green ball and intakes it
 
 
             } //manual controls
